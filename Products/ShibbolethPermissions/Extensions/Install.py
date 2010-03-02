@@ -10,14 +10,9 @@ from Products.PageTemplates.ZopePageTemplate import ZopePageTemplate
 from Products.PluggableAuthService.PluggableAuthService import logger
 from Products.PythonScripts.PythonScript import PythonScript
 from zExceptions import BadRequest
-try:
-    from ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
-except ImportError:
-    from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
-try:
-    from ShibbolethPermissions import shib_globals
-except ImportError:
-    from Products.ShibbolethPermissions import shib_globals
+
+from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
+from Products.ShibbolethPermissions import shib_globals
 
 scripts = ('shibattrs', 'shibperms', 'listkeys',
            'folder_localrole_shib_add', 'folder_localrole_shib_del',

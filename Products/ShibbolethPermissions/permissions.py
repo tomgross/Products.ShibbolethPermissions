@@ -77,9 +77,7 @@ class ShibbolethPermissions(BasePlugin):
         logger.info("permissions.ShibbolethPermissions.getLocalRoles(%s, %s)" % (str(path), str(params)))
         roles = {}
         for ii in self.localRoles.iterkeys():
-            roles[ii] = []
-            for jj in self.localRoles[ii]:
-                roles[ii].append(jj)
+            roles[ii] = list(self.localRoles[ii])
         if not path and not params:
             return roles        # no select given, so return everything
         if path:
@@ -129,7 +127,7 @@ class ShibbolethPermissions(BasePlugin):
             index = -1
             for ii in self.localRoles[path]:
                 index += 1
-                if ii.keys().sort() != paramKeys:
+                if sorted(ii.keys()) != paramKeys:
                     continue    # both the subcriteria and source dictionary
                                 # must have the same set of keys
                 regexes = {}

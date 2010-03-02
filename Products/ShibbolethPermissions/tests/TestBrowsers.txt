@@ -7,10 +7,7 @@ Here, we're going to try a few pseudo-browser tests.
 We begin by using the utility method for adding ShibbolethPermissions to an
 existing acl_users.
 
-    >>> try:
-    ...     from ShibbolethPermissions.tests import utils
-    ... except ImportError:
-    ...     from Products.ShibbolethPermissions.tests import utils
+    >>> from Products.ShibbolethPermissions.tests import utils
 
 And make sure we can set up our plugin in the PAS instance.
 

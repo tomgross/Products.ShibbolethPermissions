@@ -5,10 +5,7 @@ ShibbolethPermissions
 I want to describe setting up a Shibboleth Permissions instance. Begin by using
 the utility method for adding ShibbolethPermissions to an existing acl_users.
 
-    >>> try:
-    ...     from ShibbolethPermissions.tests import utils
-    ... except ImportError:
-    ...     from Products.ShibbolethPermissions.tests import utils
+    >>> from Products.ShibbolethPermissions.tests import utils
 
 Make sure trying to do this on an object without any acl_users fails.
 

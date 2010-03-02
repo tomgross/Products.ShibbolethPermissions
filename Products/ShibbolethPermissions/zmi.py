@@ -3,11 +3,7 @@
 __revision__ = '0.1'
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-try:
-    from ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
-except ImportError:
-    from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
-
+from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
 
 manage_addShibbolethPermissionsForm = PageTemplateFile('add-ShibbolethPermissions.zpt', globals())
 

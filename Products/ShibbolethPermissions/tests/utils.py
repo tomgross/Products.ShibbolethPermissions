@@ -1,13 +1,7 @@
 from Products.PluggableAuthService.interfaces.authservice import IPluggableAuthService
 from Products.PluggableAuthService.interfaces.plugins import IAuthenticationPlugin, IExtractionPlugin
-try:
-    from ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
-except ImportError:
-    from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
-try:
-    from AutoUserMakerPASPlugin.auth import ApacheAuthPluginHandler
-except ImportError:
-    from Products.AutoUserMakerPASPlugin.auth import ApacheAuthPluginHandler
+from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
+from Products.AutoUserMakerPASPlugin.auth import ApacheAuthPluginHandler
 
 def _firstIdOfClass(container, class_):
     """Return the id of the first object of class `class_` within `container`.

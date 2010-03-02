@@ -12,19 +12,14 @@ from zope.testing import doctest
 from Testing import ZopeTestCase as ztc
 from Products.PloneTestCase import PloneTestCase as ptc
 from Globals import package_home
-try:
-    from ShibbolethPermissions import shib_globals
-    package = 'ShibbolethPermissions'
-except ImportError:
-    from Products.ShibbolethPermissions import shib_globals
-    package = 'Products.ShibbolethPermissions'
+from Products.ShibbolethPermissions import shib_globals
 
 ptc.setupPloneSite()
 ptc.installProduct('AutoUserMakerPASPlugin')
 ptc.installProduct('ShibbolethPermissions')
 
 def test_suite():
-    tests = (ztc.ZopeDocTestSuite(package + '.permissions',
+    tests = (ztc.ZopeDocTestSuite('Products.ShibbolethPermissions.permissions',
                                   test_class=ptc.PloneTestCase,
                                   optionflags=doctest.REPORT_ONLY_FIRST_FAILURE),)
     return unittest.TestSuite(tests)
