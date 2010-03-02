@@ -20,7 +20,8 @@ def _searchParams(pathList, paramKeys, **params):
     paramKeys is the sorted list of **params' keys.
     **params is what we're given from Shibboleth.
     >>> from Products.ShibbolethPermissions import permissions
-    >>> path = [{'a':'1'}, {'a':'1', 'b':'2'}, {'a':'1', 'b':'3'}, {'a':'1', 'b':'2', 'c':'3'}, {'a':'1', 'c':'3'}]
+    >>> path = [{'a':'1'}, {'a':'1', 'b':'2'}, {'a':'1', 'b':'3'},
+    ...         {'a':'1', 'b':'2', 'c':'3'}, {'a':'1', 'c':'3'}]
     >>> keys = ['a', 'b']
     >>> params = {'a':'1', 'b':'2'}
     >>> permissions._searchParams(path, keys, **params)
@@ -186,9 +187,6 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
 
     meta_type = 'Shibboleth Permissions'
     security = ClassSecurityInfo()
-
-    def __init__(self, pluginId, title=None):
-        ShibbolethPermissions.__init__(self, pluginId, title)
 
     # A method to return the configuration page:
     security.declareProtected(ManageUsers, 'manage_config')

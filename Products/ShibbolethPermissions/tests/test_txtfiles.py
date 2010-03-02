@@ -11,12 +11,7 @@ from zope.testing import doctest
 from Testing import ZopeTestCase as ztc
 from Products.PloneTestCase import PloneTestCase as ptc
 from Globals import package_home
-try:
-    from ShibbolethPermissions import shib_globals
-    package = 'ShibbolethPermissions'
-except ImportError:
-    from Products.ShibbolethPermissions import shib_globals
-    package = 'Products.ShibbolethPermissions'
+from Products.ShibbolethPermissions import shib_globals
 
 ptc.setupPloneSite()
 ptc.installProduct('AutoUserMakerPASPlugin')
@@ -27,12 +22,12 @@ def listDoctests():
     return [ii for ii in glob.glob(os.path.sep.join([home + '/tests', '*.txt']))]
 
 def test_suite():
-    files = listDoctests()
-    tests = [ztc.FunctionalDocFileSuite('tests/' + os.path.basename(filename),
-                                        test_class=ptc.PloneTestCase,
-                                        package=package,
-                                        optionflags=doctest.REPORT_ONLY_FIRST_FAILURE)
-             for filename in files]
+    tests = [ztc.FunctionalDocFileSuite(
+                'tests/' + os.path.basename(filename),
+                test_class=ptc.FunctionalTestCase,
+                package='Products.ShibbolethPermissions',
+                optionflags=doctest.REPORT_ONLY_FIRST_FAILURE)
+             for filename in listDoctests()]
     return unittest.TestSuite(tests)
 
 if __name__ == '__main__':
