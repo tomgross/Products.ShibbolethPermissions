@@ -1,0 +1,88 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>New Test</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">New Test</td></tr>
+</thead><tbody>
+<tr>
+<td>open</td>
+<td>/test/acl_users/ShibbolethPermissions/manage_workspace</td>
+<td></td>
+</tr>
+<tr>
+<td>verifyTextPresent</td>
+<td>No local permissions have been gra</td>
+<td></td>
+</tr>
+<tr>
+<td>open</td>
+<td>/test/</td>
+<td></td>
+</tr>
+<tr>
+<td>clickAndWait</td>
+<td>//a[@href='/test/front-page/sharing']</td>
+<td></td>
+</tr>
+<tr>
+<td>verifyTextPresent</td>
+<td>Shibboleth Permissions</td>
+<td></td>
+</tr>
+<tr>
+<td>type</td>
+<td>//input[@id='HTTP_X_REMOTE_USER']</td>
+<td>test</td>
+</tr>
+<tr>
+<td>select</td>
+<td>//select[@id='user_member_role']</td>
+<td>Reviewer</td>
+</tr>
+<tr>
+<td>clickAndWait</td>
+<td>//input[@name='' and @value='Apply Settings']</td>
+<td></td>
+</tr>
+<tr>
+<td>verifyTextPresent</td>
+<td>HTTP_X_REMOTE_USER = 't</td>
+<td></td>
+</tr>
+<tr>
+<td>click</td>
+<td>//input[@name='row_number:list' and @value='0']</td>
+<td></td>
+</tr>
+<tr>
+<td>select</td>
+<td>//select[@id='user_member_role']</td>
+<td>Manager</td>
+</tr>
+<tr>
+<td>clickAndWait</td>
+<td>//input[@name='folder_localrole_shib_upd:method' and @value='Assign Selected Role(s) to Selected Shibboleth Patterns(s)']</td>
+<td></td>
+</tr>
+<tr>
+<td>verifyTextPresent</td>
+<td>Manag</td>
+<td></td>
+</tr>
+<tr>
+<td>click</td>
+<td>//input[@name='row_number:list' and @value='0']</td>
+<td></td>
+</tr>
+<tr>
+<td>clickAndWait</td>
+<td>//input[@name='folder_localrole_shib_upd:method' and @value='Assign Selected Role(s) to Selected Shibboleth Patterns(s)']</td>
+<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>

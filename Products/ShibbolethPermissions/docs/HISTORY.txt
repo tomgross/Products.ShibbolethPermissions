@@ -1,0 +1,9 @@
+Changelog for ShibbolethPermissions
+
+    (name of developer listed in brackets)
+
+ShibbolethPermissions - 0.1 Unreleased
+
+    - Initial package structure.
+      [zopeskel]
+

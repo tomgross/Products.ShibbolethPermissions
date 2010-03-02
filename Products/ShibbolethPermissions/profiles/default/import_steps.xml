@@ -1,0 +1,9 @@
+<import-steps>
+	<import-step id="ShibbolethPermissions.policy_various"
+				 version="20080514-03"
+				 handler="Products.ShibbolethPermissions.setuphandlers.importVarious"
+				 title="Update tabs">
+		<dependency step="catalog" />
+		<dependency step="propertiestool" />
+	</import-step>
+</import-steps>

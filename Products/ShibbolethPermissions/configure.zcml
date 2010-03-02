@@ -1,0 +1,14 @@
+<configure
+	xmlns="http://namespaces.zope.org/zope"
+	xmlns:browser="http://namespaces.zope.org/browser"
+	xmlns:genericsetup="http://namespaces.zope.org/genericsetup">
+
+	<include file="permissions.zcml" />
+	<include package=".browser" />
+	<genericsetup:registerProfile 
+		name="default" 
+		title="ShibbolethPermissions profile" 
+		directory="profiles/default" 
+		description="Extension profile for ShibbolethPermissions." 
+		provides="Products.GenericSetup.interfaces.EXTENSION" />
+</configure>

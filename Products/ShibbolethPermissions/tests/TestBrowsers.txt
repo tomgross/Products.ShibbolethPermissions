@@ -1,0 +1,135 @@
+===============
+ShibbolethLogin
+===============
+
+Here, we're going to try a few pseudo-browser tests.
+
+We begin by using the utility method for adding ShibbolethPermissions to an
+existing acl_users.
+
+    >>> try:
+    ...     from ShibbolethPermissions.tests import utils
+    ... except ImportError:
+    ...     from Products.ShibbolethPermissions.tests import utils
+
+And make sure we can set up our plugin in the PAS instance.
+
+    >>> shibperms = utils.addShibbolethPermissions(self.portal)
+    >>> shibperms
+    <ShibbolethPermissionsHandler at /plone/acl_users/ShibbolethPermissions>
+
+We need to run the install() method to get the custom forms set up.
+
+    >>> from Products.ShibbolethPermissions.Extensions import Install
+    >>> Install.install(self.portal)
+
+Now we set up the plone browser. Log in, tell the browser not to handle errors,
+and simplify the plone UI by removing the left and right portlets.
+
+    >>> from Products.Five.testbrowser import Browser
+    >>> from Products.PloneTestCase import PloneTestCase as ptc
+    >>> browser1 = Browser()
+    >>> browser1.open(self.portal.absolute_url())
+    >>> browser1.getLink('Log in').click()
+    >>> browser1.url
+    'http://nohost/plone/login_form'
+    >>> browser1.getControl(name='__ac_name').value = ptc.default_user
+    >>> browser1.getControl(name='__ac_password').value = ptc.default_password
+    >>> browser1.getControl(name='submit').click()
+    >>> "You are now logged in" in browser1.contents
+    True
+    >>> browser1.handleErrors = False
+    >>> self.portal.left_slots = self.portal.right_slots = []
+
+Now we set up the zope/ZMI browser. Then we make sure the default user is a
+manager, and add the login header. By telling the testbrowser not to handle
+errors, we will get more output in the event one happens.
+
+    >>> from Products.Five.testbrowser import Browser
+    >>> from Products.PloneTestCase import PloneTestCase as ptc
+    >>> self.setRoles('Manager')
+    >>> browser2 = Browser()
+    >>> browser2.addHeader('Authorization', 'Basic %s:%s' % (ptc.default_user, ptc.default_password))
+    >>> browser2.handleErrors = False
+
+
+Configuration Page Testing, part 1
+----------------------------------
+
+Right now, nothing is here, so it better show that.
+
+    >>> browser2.open(shibperms.absolute_url() + '/manage_config')
+    >>> browser2.contents.find('No local permissions have been granted') > -1
+    True
+
+
+ZMI Configuration
+-----------------
+
+Now we need to configure attributes that a user can share with.
+
+    >>> class MockResponse:
+    ...     def __init__(self):
+    ...         self.url = ''
+    ...     def redirect(self, url):
+    ...         self.url = url
+    >>> class MockForm:
+    ...     def __init__(self, form={}):
+    ...         self.form = form
+    ...         self.RESPONSE = MockResponse()
+    >>> apache = utils.addAutoUserMakerPASPlugin(self.portal)
+    >>> apache
+    <ApacheAuthPluginHandler at /plone/acl_users/AutoUserMakerPASPlugin>
+
+    >>> request = MockForm({"http_sharing_tokens": 'HTTP_TEST_USER',
+    ...                     "http_sharing_labels": 'TEST_TITLE'})
+    >>> apache.manage_changeConfig(request)
+    >>> config = apache.getConfig()
+    >>> config['http_sharing_tokens']
+    ('HTTP_TEST_USER',)
+
+
+Plone Login Page Testing, part 1
+--------------------------------
+
+Now we get to the heart of testing ShibbolethPermissions from the user's point
+of view. Let's create a couple of sharing patterns.
+
+    >>> browser1.open(self.portal.absolute_url())
+    >>> browser1.getLink('Sharing').click()
+
+Actually let's quit right here. Five's testbrowser doesn't get the version
+of a page that's in custom. That's broken.
+
+browser1.getControl(name='values:list').value = 'test'
+browser1.getControl('Role to assign').value = 'Reviewer'
+browser1.getControl('Apply Settings').click()
+import re
+pattern = re.compile(r"<td>\s*HTTP_X_REMOTE_USER\s+=\s+'test'\s*</td>\s*<td>Reviewer</td>")
+if pattern.search(browser.contents):
+    print True
+else:
+    print False
+True
+
+Now let's modify one.
+
+
+
+Configuration Page Testing, part 2
+----------------------------------
+
+Now, there better be something here, so don't show the no permissions message.
+
+browser2.open(shibperms.absolute_url() + '/manage_config')
+browser2.contents.find('No local permissions have been granted') == -1
+True
+
+Let's delete one.
+
+
+Plone Login Page Testing, part 2
+--------------------------------
+
+Now let's delete the last sharing pattern.
+

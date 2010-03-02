@@ -1,0 +1,153 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      lang="en"
+      metal:use-macro="context/@@standard_macros/page"
+      i18n:domain="plone">
+
+<head>
+</head>
+<body>
+<div metal:fill-slot="body"
+     tal:define="context_state context/@@plone_context_state">
+
+<h1 class="documentFirstHeading"
+  i18n:translate="heading_shibboleth_permissions">
+  Shibboleth Permissions for
+  "<span tal:content="context/Title" tal:omit-tag="" i18n:name="folder">title</span>"
+</h1>
+<p>
+  From here you can grant permissions to users who have not logged in via
+  Shibboleth ever. Users who have already logged in via Shibboleth have a Plone
+  account. Grant permissions to those users via the Sharing tab, above.
+</p>
+<!-- form for changing existing roles -->
+<tal:use_session tal:define="shibperms python:view.shibperms(here);
+                             shibattrs view/shibattrs;
+               candidate_roles view/roles">
+  <form method="post" name="shibpermissions" action="shibboleth_permissions"
+      tal:attributes="action string:${context/absolute_url}/@@shibboleth">
+    <input type="hidden" name="form.submitted:boolean" value="True" />
+    <input type="hidden" name="physicalPath" value="/"
+           tal:attributes="value python:'/'.join(here.getPhysicalPath())" />
+    <tal:use_session tal:condition="python:shibperms">
+      <fieldset>
+        <legend i18n:translate="legend_shibboleth_permissions">
+          Manage existing Shibboleth rules.
+        </legend>
+
+        <table class="listing" summary="Currently assigned local roles"
+               i18n:attributes="summary summary_assigned_roles;">
+          <thead>
+            <tr>
+              <th>
+                <input type="checkbox" class="noborder"
+                       onclick="javascript:toggleSelect(this, 'row_number', false, 'shibpermissions');"
+                       name="shib_toggle" value="#" id="shib_toggle" />
+              </th>
+              <th>Source/Values</th>
+              <th>Local Role(s)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tal:repeat tal:repeat="entry python:range(len(shibperms))">
+              <tr tal:define="oddrow repeat/entry/odd"
+                  tal:attributes="class python:oddrow and 'odd' or 'even';">
+                <td class="field">
+                  <label class="hiddenLabel" for="member_ids"
+                         i18n:translate="label_select_usergroup">
+                    select set <span tal:content="entry"
+                                            tal:omit-tag=""
+                                            i18n:name="role">number</span>
+                  </label>
+                  <input class="formSelection" type="checkbox"
+                         name="row_number:list" id="row_number"
+                         value="" tal:attributes="value entry" />
+                </td>
+                <td>
+                  <tal:block tal:repeat="ii python:range(len(shibperms[entry]))"
+                             tal:define="keys python:view.listkeys(shibperms[entry]);
+                                         size python:len(shibperms[entry]) - 1;">
+                    <tal:block tal:condition="python:keys[ii] != '_roles'">
+                      <span valign="top" tal:content="python:keys[ii]" tal:omit-tag="">ATTR</span> =
+                      '<span valign="top" tal:content="python:shibperms[entry][keys[ii]]" tal:omit-tag="">VAL</span>'
+                    </tal:block>
+                    <tal:block tal:condition="python:size > 1 and ii < size">
+                      <br/>
+                    </tal:block>
+                  </tal:block>
+                </td>
+                <td tal:content="python:', '.join(shibperms[entry]['_roles'])">ROLE</td>
+              </tr>
+            </tal:repeat>
+          </tbody>
+        </table>
+
+        <div class="field">
+          <label for="upd_member_role" i18n:translate="label_localrole_to_assign_to_set">
+            Roles to assign to selected attribute sets.
+          </label>
+          <select name="upd_member_role" id="upd_member_role"
+              multiple="multiple">
+            <option tal:repeat="role candidate_roles"
+                tal:attributes="value role/id"
+                tal:content="role/title">
+              Role name
+            </option>
+          </select>
+        </div>
+
+        <div class="submit">
+          <input class="context" type="submit"
+                 value="Assign Selected Role(s) to Selected Shibboleth Patterns(s)"
+                 name="form.button.Update"
+                 i18n:attributes="value label_assign_roles_to_shibboleth" />
+          <input class="destructive" type="submit"
+                 value="Delete Selected Shibboleth Pattern(s)"
+                 name="form.button.Delete"
+                 i18n:attributes="value label_delete_roles_from_shibboleth;"/>
+        </div>
+      </fieldset>
+    </tal:use_session>
+    <tal:use_session tal:condition="python:shibattrs">
+      <fieldset>
+        <legend i18n:translate="legend_shibboleth_permissions">
+          Assign Permissions based on Shibboleth Attributes
+        </legend>
+        <tal:repeat tal:repeat="shib shibattrs">
+          <div class="field">
+            <label tal:content="python:shib[0]">SHIBATTRLABEL</label>
+            <input type="hidden" name="add_attribs" value="ATTR"
+                   tal:attributes="value python:shib[1]" />
+            <input type="text" size="40" id="ATTR" name="add_values"
+                   tal:attributes="id python:shib[1];" />
+          </div>
+        </tal:repeat>
+        <div class="field">
+          <label for="add_member_role" i18n:translate="label_localrole_to_assign">
+            New Users
+          </label>
+          <select name="add_member_role" id="add_member_role"
+              multiple="multiple">
+            <option tal:repeat="role candidate_roles"
+                tal:attributes="value role/id"
+                tal:content="role/title">
+              Role name
+            </option>
+          </select>
+        </div>
+        <div class="submit">
+          <input class="context" type="submit" name="form.button.Save"
+                 value="Save" i18n:attributes="value label_save" />
+          <input class="standalone" type="submit" name="form.button.Cancel"
+                 value="Cancel" i18n:attributes="value label_cancel"/>
+        </div>
+      </fieldset>
+    </tal:use_session>
+    <tal:use_session tal:condition="python:not shibattrs">
+      <p>No Shibboleth attributes are available for granting permissions.</p>
+    </tal:use_session>
+  </form>
+</tal:use_session>
+
+</div>
+</body>
+</html>
