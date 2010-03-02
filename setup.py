@@ -50,7 +50,7 @@ setup(name='Products.ShibbolethPermissions',
       install_requires=[
           'plone.app.workflow',
           'plone.memoize',
-          'Products.AutoUserMakerPASPlugin'.
+          'Products.AutoUserMakerPASPlugin',
           'setuptools',
           'zope.component',
           ],
