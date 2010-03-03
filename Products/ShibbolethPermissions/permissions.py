@@ -163,9 +163,8 @@ class ShibbolethPermissions(BasePlugin):
             return
         if params:
             paramKeys = params.keys().sort()
-            delList = []
             for ii in self.localRoles[path]:
-                if ii.keys().sort() != paramKeys:
+                if sorted(ii.keys()) != paramKeys:
                     continue    # both the subcriteria and source dictionary
                                 # must have the same set of keys
                 regexes = {}

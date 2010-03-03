@@ -1,4 +1,4 @@
-from Acquisition import aq_inner, aq_base
+from Acquisition import aq_inner
 from Products.CMFCore.utils import getToolByName
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -7,7 +7,7 @@ from plone.app.workflow.interfaces import ISharingPageRole
 from zExceptions import Forbidden
 from zope.component import getUtilitiesFor
 
-from plone.memoize.instance import memoize, clearafter
+from plone.memoize.instance import memoize
 
 def _getList(form, value):
 	"""Return a list regardless of single input value or list."""
