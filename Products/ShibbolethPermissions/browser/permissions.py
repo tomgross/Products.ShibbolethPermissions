@@ -7,14 +7,13 @@ from plone.app.workflow.interfaces import ISharingPageRole
 from zExceptions import Forbidden
 from zope.component import getUtilitiesFor
 
-from plone.memoize.instance import memoize
+from plone.memoize.view import memoize
 
 def _getList(form, value):
-	"""Return a list regardless of single input value or list."""
+	""" Return a list regardless of single input value or list."""
 	rval = form.get(value, [])
 	if not isinstance(rval, list):
 		rval = [rval,]
-	logger.info("permissions.ShibbolethView %s = %s" % (value, str(rval)))
 	return rval
 
 class ShibbolethView(BrowserView):
@@ -28,55 +27,20 @@ class ShibbolethView(BrowserView):
 		form = self.request.form
 		submitted = form.get('form.submitted', False)
 		update_button = form.get('form.button.Update', None) is not None
-		logger.info("permissions.ShibbolethView update = %s" % str(update_button))
 		delete_button = form.get('form.button.Delete', None) is not None
-		logger.info("permissions.ShibbolethView delete = %s" % str(delete_button))
 		save_button   = form.get('form.button.Save',   None) is not None
-		logger.info("permissions.ShibbolethView save = %s" % str(save_button))
 		cancel_button = form.get('form.button.Cancel', None) is not None
-		logger.info("permissions.ShibbolethView cancel = %s" % str(cancel_button))
 		if submitted and not cancel_button:
 			if not self.request.get('REQUEST_METHOD','GET') == 'POST':
 				raise Forbidden
 			path = form.get('physicalPath', None)
 			if not path:
 				raise Forbidden
-			logger.info("permissions.ShibbolethView path = %s" % str(path))
-			acl_users = getToolByName(self, 'acl_users')
 			if save_button:
-				attribs = _getList(form, 'add_attribs')
-				values = _getList(form, 'add_values')
-				member_role = _getList(form, 'add_member_role')
-				shibattr = {}
-				for ii in range(len(attribs)):
-					try:
-						if values[ii]:
-							shibattr[attribs[ii]] = values[ii]
-					except IndexError:
-						break
-				if shibattr and member_role:
-					acl_users.ShibbolethPermissions.addLocalRoles(path, shibattr, member_role)
+				self.save()
 			else:
-				row_number = _getList(form, 'row_number')
-				if delete_button:
-					row_number.sort(reverse=True)
-					for ii in row_number:
-						logger.info("permissions.ShibbolethView trying to delete row %s" % str(ii))
-						try:
-							if ii:
-								acl_users.ShibbolethPermissions.delLocalRoles(path, int(ii))
-						except (TypeError, IndexError):
-							pass
-				else:
-					member_role = _getList(form, 'upd_member_role')
-					row_number.sort(reverse=True)
-					for ii in row_number:
-						logger.info("permissions.ShibbolethView trying to update row %s" % str(ii))
-						try:
-							if ii:
-								acl_users.ShibbolethPermissions.updLocalRoles(path, int(ii), member_role)
-						except (TypeError, IndexError):
-							pass
+				self.update()
+
 		# Other buttons return to the sharing page
 		if cancel_button:
 			postback = False
@@ -86,6 +50,42 @@ class ShibbolethView(BrowserView):
 			context_state = self.context.restrictedTraverse("@@plone_context_state")
 			url = context_state.view_url()
 			self.request.response.redirect(url)
+
+	def save(self):
+		form = self.request.form
+		attribs = _getList(form, 'add_attribs')
+		values = _getList(form, 'add_values')
+		member_role = _getList(form, 'add_member_role')
+		shibattr = {}
+		for ii in range(len(attribs)):
+			try:
+				if values[ii]:
+					shibattr[attribs[ii]] = values[ii]
+			except IndexError:
+				break
+		if shibattr and member_role:
+			self.shibpermsplugin().addLocalRoles(path, shibattr, member_role)
+
+	def update(self):
+		form = self.request.form
+		row_number = _getList(form, 'row_number')
+		if delete_button:
+			row_number.sort(reverse=True)
+			for ii in row_number:
+				try:
+					if ii:
+						self.shibpermsplugin().delLocalRoles(path, int(ii))
+				except (TypeError, IndexError):
+					pass
+		else:
+			member_role = _getList(form, 'upd_member_role')
+			row_number.sort(reverse=True)
+			for ii in row_number:
+				try:
+					if ii:
+						self.shibpermsplugin().updLocalRoles(path, int(ii), member_role)
+				except (TypeError, IndexError):
+					pass
 
 	@memoize
 	def roles(self):
@@ -106,24 +106,27 @@ class ShibbolethView(BrowserView):
 		pairs.sort(lambda x, y: cmp(x['id'], y['id']))
 		return pairs
 
+	@memoize
+	def shibpermsplugin(self):
+		context = aq_inner(self.context)
+		acl_users = getToolByName(context, 'acl_users')
+		return acl_users.ShibbolethPermissions
+
 	def shibattrs(self):
 		"""
 		"""
-		logger.info("permissions.ShibbolethView.shibattrs()")
-		acl_users = getToolByName(self, 'acl_users')
-		return acl_users.ShibbolethPermissions.getShibAttrs()
+		context = aq_inner(self.context)
+		self.shibpermsplugin().getShibAttrs()
 
 	def shibperms(self, where):
 		"""
 		"""
-		logger.info("permissions.ShibbolethView.shibperms()")
-		acl_users = getToolByName(self, 'acl_users')
-		return acl_users.ShibbolethPermissions.getLocalRoles('/'.join(where.getPhysicalPath()))
+		path = '/'.join(where.getPhysicalPath())
+		return self.shibpermsplugin().getLocalRoles(path)
 
 	def listkeys(self, config):
 		"""
 		"""
-		logger.info("permissions.ShibbolethView.listkeys(%r)" % config)
 		try:
 			rval = config.keys()
 		except (AttributeError, TypeError):

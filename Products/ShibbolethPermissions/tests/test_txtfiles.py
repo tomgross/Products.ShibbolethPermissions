@@ -13,9 +13,7 @@ from Products.PloneTestCase import PloneTestCase as ptc
 from Globals import package_home
 from Products.ShibbolethPermissions import shib_globals
 
-ptc.setupPloneSite()
-ptc.installProduct('AutoUserMakerPASPlugin')
-ptc.installProduct('ShibbolethPermissions')
+from Products.ShibbolethPermissions.tests.base import ShibPermFunctionalTestCase
 
 def listDoctests():
     home = package_home(shib_globals)
@@ -24,7 +22,7 @@ def listDoctests():
 def test_suite():
     tests = [ztc.FunctionalDocFileSuite(
                 'tests/' + os.path.basename(filename),
-                test_class=ptc.FunctionalTestCase,
+                test_class=ShibPermFunctionalTestCase,
                 package='Products.ShibbolethPermissions',
                 optionflags=doctest.REPORT_ONLY_FIRST_FAILURE)
              for filename in listDoctests()]

@@ -39,7 +39,8 @@ def install(portal, reinstall=False):
                 thisParam = entry
                 del thisParam['_roles']
                 plugin.addLocalRoles(path, thisParam, thisRole)
-    acl_users.manage_delProperties(['sp_config'])
+    if acl_users.hasProperty('sp_config'):
+        acl_users.manage_delProperties(['sp_config'])
 
 def uninstall(portal, reinstall=False):
     acl_users = getToolByName(portal, 'acl_users')
