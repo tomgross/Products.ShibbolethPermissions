@@ -37,9 +37,9 @@ class ShibbolethView(BrowserView):
             if not path:
                 raise Forbidden
             if save_button:
-                self.save()
+                self.save(path)
             else:
-                self.update()
+                self.update(path)
 
         # Other buttons return to the sharing page
         if cancel_button:
@@ -52,7 +52,7 @@ class ShibbolethView(BrowserView):
             url = context_state.view_url()
             self.request.response.redirect(url)
 
-    def save(self):
+    def save(self, path):
         form = self.request.form
         attribs = _getList(form, 'add_attribs')
         values = _getList(form, 'add_values')
@@ -64,7 +64,7 @@ class ShibbolethView(BrowserView):
         if shibattr and member_role:
             self.shibpermsplugin().addLocalRoles(path, shibattr, member_role)
 
-    def update(self):
+    def update(self, path):
         form = self.request.form
         row_number = _getList(form, 'row_number')
         delete_button = form.get('form.button.Delete', None) is not None
