@@ -202,7 +202,6 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
         >>> ShibbolethPermissionsHandler('test').listKeys({'b': 2, 'a': 1, 'c': 3})
         ['a', 'b', 'c']
         """
-        logger.info("permissions.ShibbolethPermissionsHandler.listKeys(%s)" % repr(config))
         try:
             rval = config.keys()
         except (AttributeError, TypeError):

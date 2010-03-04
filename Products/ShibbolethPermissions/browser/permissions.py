@@ -1,3 +1,5 @@
+import zope.component
+
 from Acquisition import aq_inner
 from Products.CMFCore.utils import getToolByName
 from Products.Five.browser import BrowserView
@@ -5,7 +7,6 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.PluggableAuthService.PluggableAuthService import logger
 from plone.app.workflow.interfaces import ISharingPageRole
 from zExceptions import Forbidden
-from zope.component import getUtilitiesFor
 
 from plone.memoize.view import memoize
 
@@ -27,8 +28,7 @@ class ShibbolethView(BrowserView):
 		form = self.request.form
 		submitted = form.get('form.submitted', False)
 		update_button = form.get('form.button.Update', None) is not None
-		delete_button = form.get('form.button.Delete', None) is not None
-		save_button   = form.get('form.button.Save',   None) is not None
+		save_button   = form.get('form.button.Save', None) is not None
 		cancel_button = form.get('form.button.Cancel', None) is not None
 		if submitted and not cancel_button:
 			if not self.request.get('REQUEST_METHOD','GET') == 'POST':
@@ -47,7 +47,8 @@ class ShibbolethView(BrowserView):
 		if postback:
 			return self.template()
 		else:
-			context_state = self.context.restrictedTraverse("@@plone_context_state")
+			context_state = zope.component.getMultiAdapter(
+			    (self.context, self.request), name="@@plone_context_state")
 			url = context_state.view_url()
 			self.request.response.redirect(url)
 
@@ -58,34 +59,28 @@ class ShibbolethView(BrowserView):
 		member_role = _getList(form, 'add_member_role')
 		shibattr = {}
 		for ii in range(len(attribs)):
-			try:
-				if values[ii]:
-					shibattr[attribs[ii]] = values[ii]
-			except IndexError:
-				break
+			if values[ii]:
+				shibattr[attribs[ii]] = values[ii]
 		if shibattr and member_role:
 			self.shibpermsplugin().addLocalRoles(path, shibattr, member_role)
 
 	def update(self):
 		form = self.request.form
 		row_number = _getList(form, 'row_number')
+		delete_button = form.get('form.button.Delete', None) is not None
 		if delete_button:
 			row_number.sort(reverse=True)
 			for ii in row_number:
-				try:
-					if ii:
-						self.shibpermsplugin().delLocalRoles(path, int(ii))
-				except (TypeError, IndexError):
-					pass
+				if ii:
+					self.shibpermsplugin().delLocalRoles(path, int(ii))
 		else:
 			member_role = _getList(form, 'upd_member_role')
 			row_number.sort(reverse=True)
 			for ii in row_number:
-				try:
-					if ii:
-						self.shibpermsplugin().updLocalRoles(path, int(ii), member_role)
-				except (TypeError, IndexError):
-					pass
+				if ii:
+					self.shibpermsplugin().updLocalRoles(path,
+					                                     int(ii),
+					                                     member_role)
 
 	@memoize
 	def roles(self):
@@ -99,7 +94,7 @@ class ShibbolethView(BrowserView):
 		context = aq_inner(self.context)
 		portal_membership = getToolByName(context, 'portal_membership')
 		pairs = []
-		for name, utility in getUtilitiesFor(ISharingPageRole):
+		for name, utility in zope.component.getUtilitiesFor(ISharingPageRole):
 			permission = utility.required_permission
 			if permission is None or portal_membership.checkPermission(permission, context):
 				pairs.append(dict(id = name, title = utility.title))
@@ -127,9 +122,4 @@ class ShibbolethView(BrowserView):
 	def listkeys(self, config):
 		"""
 		"""
-		try:
-			rval = config.keys()
-		except (AttributeError, TypeError):
-			return []
-		rval.sort()
-		return rval
+		return self.shibpermsplugin().listKeys(config)
