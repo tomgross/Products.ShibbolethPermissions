@@ -48,7 +48,7 @@ class ShibbolethView(BrowserView):
             return self.template()
         else:
             context_state = zope.component.getMultiAdapter(
-                (self.context, self.request), name="@@plone_context_state")
+                (self.context, self.request), name="plone_context_state")
             url = context_state.view_url()
             self.request.response.redirect(url)
 

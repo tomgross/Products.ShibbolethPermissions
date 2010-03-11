@@ -1,6 +1,5 @@
-#!/usr/bin/env python
 """Classes to manage local permissions from Shibboleth attributes."""
-___revision__ = '0.1'
+__revision__ = '0.1'
 
 import re
 
@@ -34,14 +33,12 @@ def _searchParams(pathList, paramKeys, **params):
         if pathKeys != paramKeys:
             continue        # both the subcriteria and source dictionary
                             # must have the same set of keys
-        regexes = {}
-        for jj in paramKeys:
-            regexes[jj] = re.compile(ii[jj])
+	regexes = dict([(key, re.compile(ii[key])) for key in paramKeys])
         for jj in paramKeys:
             found = regexes[jj].search(params[jj]) and True or False
             if not found:
-                break       # This doesn't match, so no point in testing more
-        if found:           # Got here as true, so it matched all, save it
+                break # This doesn't match, so no point in testing more
+        else: # Got here as true, so it matched all, save it
             rval.append(ii)
     return rval
 
@@ -74,7 +71,6 @@ class ShibbolethPermissions(BasePlugin):
         >>> ShibbolethPermissions('test').getLocalRoles()
         {}
         """
-        logger.info("permissions.ShibbolethPermissions.getLocalRoles(%s, %s)" % (str(path), str(params)))
         roles = {}
         for ii in self.localRoles.iterkeys():
             roles[ii] = list(self.localRoles[ii])
@@ -97,7 +93,6 @@ class ShibbolethPermissions(BasePlugin):
     security.declarePublic('addLocalRoles')
     def addLocalRoles(self, path, params, roles):
         """Add a pattern for path of params."""
-        logger.info("permissions.ShibbolethPermissions.addLocalRoles(%s, %s, %s)" % (str(path), str(params), str(roles)))
         params['_roles'] = roles
         if self.localRoles.has_key(path):
             self.localRoles[path].append(params)
@@ -107,19 +102,18 @@ class ShibbolethPermissions(BasePlugin):
     security.declarePublic('delLocalRoles')
     def delLocalRoles(self, path=None, row=None, **params):
         """Delete the specified roles."""
-        logger.info("permissions.ShibbolethPermissions.delLocalRoles(%s, %s, %s)" % (str(path), str(row), str(params)))
         if not path:
             if not row and not params:
                 self.localRoles.clear()
             return
         if not self.localRoles.has_key(path):
-            logger.info("permissions.ShibbolethPermissions.delLocalRoles error: no path %s in localRoles" % str(path), exc_info=True)
             return
         if row:
             try:
                 del self.localRoles[path][row]
             except (IndexError, TypeError):
-                logger.warning("permissions.ShibbolethPermissions.delLocalRoles error deleting row %s from %s" % (str(row), str(path)), exc_info=True)
+                logger.warning("delLocalRoles error deleting row %s from %s"
+                               % (str(row), str(path)), exc_info=True)
             return
         if params:
             paramKeys = params.keys().sort()
@@ -148,18 +142,16 @@ class ShibbolethPermissions(BasePlugin):
     security.declarePublic('updLocalRoles')
     def updLocalRoles(self, path=None, row=None, roles=[], **params):
         """Update the specified roles."""
-        logger.info("permissions.ShibbolethPermissions.updLocalRoles(%s, %s, %s, %s)" % (str(path), str(row), str(roles), str(params)))
         if not path:
             return
         if not self.localRoles.has_key(path):
-            logger.warning("permissions.ShibbolethPermissions.updLocalRoles error: no path %s in localRoles" % str(path), exc_info=True)
             return
         if row is not None:
-            logger.info("permissions.ShibbolethPermissions.updLocalRoles setting localRoles[%s][%d]['_roles'] to %s" % (path, row, str(roles)))
             try:
                 self.localRoles[path][row]['_roles'] = roles
             except (IndexError, TypeError):
-                logger.warning("permissions.ShibbolethPermissions.updLocalRoles error updating row %s from %s" % (str(row), str(path)), exc_info=True)
+                logger.warning("updLocalRoles error updating row %s from %s"
+                               % (str(row), str(path)), exc_info=True)
             return
         if params:
             paramKeys = params.keys().sort()
@@ -173,8 +165,8 @@ class ShibbolethPermissions(BasePlugin):
                 for jj in paramKeys:
                     found = regexes[jj].search(params[jj]) and True or False
                     if not found:
-                        break   # This doesn't match, so no point in testing more
-                if found:       # Got here as true, so it matched all, save it
+                        break # This doesn't match, so no point in testing more
+                else: # Got here as true, so it matched all, save it
                     ii['_roles'] = roles
 
 class ShibbolethPermissionsHandler(ShibbolethPermissions):
@@ -199,7 +191,8 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
 
         This is a generic routing, so a simple test will do.
         >>> from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
-        >>> ShibbolethPermissionsHandler('test').listKeys({'b': 2, 'a': 1, 'c': 3})
+        >>> ShibbolethPermissionsHandler('test').listKeys(
+        ...     {'b': 2, 'a': 1, 'c': 3})
         ['a', 'b', 'c']
         """
         try:
@@ -231,6 +224,7 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
             return None
         for ii in REQUEST.form.get('plonepath', []):
             self.delLocalRoles(ii)
-        return REQUEST.RESPONSE.redirect('%s/manage_config' % self.absolute_url())
+        return REQUEST.RESPONSE.redirect('%s/manage_config' %
+                                         self.absolute_url())
 
 InitializeClass(ShibbolethPermissionsHandler)
