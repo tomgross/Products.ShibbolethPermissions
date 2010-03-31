@@ -15,9 +15,10 @@ ptc.installProduct('AutoUserMakerPASPlugin')
 ptc.installProduct('ShibbolethPermissions')
 
 def test_suite():
-    tests = (ztc.ZopeDocTestSuite('Products.ShibbolethPermissions.permissions',
-                                  test_class=ptc.PloneTestCase,
-                                  optionflags=doctest.REPORT_ONLY_FIRST_FAILURE),)
+    tests = (ztc.ZopeDocTestSuite(
+        'Products.ShibbolethPermissions.permissions',
+        test_class=ptc.FunctionalTestCase,
+        optionflags=doctest.REPORT_ONLY_FIRST_FAILURE))
     return unittest.TestSuite(tests)
 
 if __name__ == '__main__':
