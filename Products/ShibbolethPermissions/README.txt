@@ -1,9 +1,5 @@
-====================================
-ShibbolethPermissions Package Readme
-====================================
-
 Overview
---------
+========
 
 Extend Plone's folder_localrole_form to grant permissions to Shibboleth users.
 
@@ -20,19 +16,20 @@ they already exist as Plone users.
 Requirements
 ============
 
-* Zope and Plone. Tested with Zope 2.9.7 and Plone 2.5.3, and Zope 2.10.5 and
-  Plone 3.0.6.
+* Zope and Plone. Tested with Zope 2.10.11 and Plone 3.3.4
 
 * AutoUserMakerPASPlugin.
 
 Installation
 ============
 
-1. Unzip the ShibbolethPermissions.zip file in $INSTANCE_HOME/Products.
+1. Add ``Products.ShibbolethPermissions`` to the eggs-section of your buildout
 
-2. Restart Zope.
+2. Rerun the buildout.
 
-3. Install the plugin: Go to your-plone-site -> site setup -> Add/Remove
+3. Restart Zope.
+
+4. Install the plugin: Go to your-plone-site -> site setup -> Add/Remove
    Products, and install ShibbolethPermissions.
 
 Using Shibboleth Permissions
