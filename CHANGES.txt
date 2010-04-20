@@ -1,7 +1,8 @@
-0.8a2 (svn/unreleased)
-======================
+0.8a2 (2010-04-20)
+==================
 
- -
+ - fixed missing return in view-class method
+   [tom_gross]
 
 0.8a1 (2010-04-06)
 ==================

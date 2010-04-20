@@ -208,13 +208,12 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
         autoUserMaker = getToolByName(self, 'AutoUserMakerPASPlugin')
         config = autoUserMaker.getSharingConfig()
         rval = []
-        for ii in range(len(config['http_sharing_tokens'])):
+        for ii, token in enumerate(config['http_sharing_tokens']):
             try:
                 rval.append((config['http_sharing_labels'][ii],
-                             config['http_sharing_tokens'][ii]))
+                             token))
             except IndexError:
-                rval.append((config['http_sharing_tokens'][ii],
-                             config['http_sharing_tokens'][ii]))
+                rval.append((token, token))
         return rval
 
     security.declareProtected(ManageUsers, 'manage_changeConfig')

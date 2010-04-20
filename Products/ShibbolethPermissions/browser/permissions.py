@@ -110,8 +110,7 @@ class ShibbolethView(BrowserView):
     def shibattrs(self):
         """
         """
-        context = aq_inner(self.context)
-        self.shibpermsplugin().getShibAttrs()
+        return self.shibpermsplugin().getShibAttrs()
 
     def shibperms(self, where):
         """
