@@ -91,24 +91,22 @@ class ShibbolethPermissions(BasePlugin):
 
     security.declarePublic('delLocalRoles')
     def delLocalRoles(self, path=None, row=None):
-        """Delete the specified roles."""
+        """ Delete the specified roles.
+        """
         if path is None and row is None:
             self.localRoles.clear()
-            return
-        elif not self.localRoles.has_key(path):
-            return
-        if row is not None:
-            try:
+        elif self.localRoles.has_key(path):
+            if row is not None:
                 del self.localRoles[path][row]
-            except (IndexError, TypeError):
-                logger.warning("delLocalRoles error deleting row %s from %s"
-                               % (str(row), str(path)), exc_info=True)
-            return
-        del self.localRoles[path]
+            else:
+                del self.localRoles[path]
 
     security.declarePublic('updLocalRoles')
-    def updLocalRoles(self, path=None, row=None, roles=[], **params):
-        """Update the specified roles."""
+    def updLocalRoles(self, path=None, row=None, roles=None):
+        """ Update the specified roles.
+        """
+        if roles is None:
+            roles = []
         if path and self.localRoles.has_key(path) and row is not None:
             try:
                 self.localRoles[path][row]['_roles'] = roles
