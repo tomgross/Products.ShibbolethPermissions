@@ -1,5 +1,7 @@
 import zope.component
 
+from persistent.dict import PersistentDict
+
 from Acquisition import aq_inner
 from Products.CMFCore.utils import getToolByName
 from Products.Five.browser import BrowserView
@@ -57,25 +59,21 @@ class ShibbolethView(BrowserView):
         attribs = _getList(form, 'add_attribs')
         values = _getList(form, 'add_values')
         member_role = _getList(form, 'add_member_role')
-        shibattr = {}
-        for ii in range(len(attribs)):
-            if values[ii]:
-                shibattr[attribs[ii]] = values[ii]
+        shibattr = PersistentDict([(attrib, values[ii])
+                         for ii, attrib in enumerate(attribs) if values[ii]])
         if shibattr and member_role:
             self.shibpermsplugin().addLocalRoles(path, shibattr, member_role)
 
     def update(self, path):
         form = self.request.form
         row_number = _getList(form, 'row_number')
-        delete_button = form.get('form.button.Delete', None) is not None
-        if delete_button:
-            row_number.sort(reverse=True)
+        row_number.sort(reverse=True)
+        if form.get('form.button.Delete', None) is not None:
             for ii in row_number:
                 if ii:
                     self.shibpermsplugin().delLocalRoles(path, int(ii))
         else:
             member_role = _getList(form, 'upd_member_role')
-            row_number.sort(reverse=True)
             for ii in row_number:
                 if ii:
                     self.shibpermsplugin().updLocalRoles(path,
@@ -92,12 +90,12 @@ class ShibbolethView(BrowserView):
         	- title
         """
         context = aq_inner(self.context)
-        portal_membership = getToolByName(context, 'portal_membership')
-        pairs = []
-        for name, utility in zope.component.getUtilitiesFor(ISharingPageRole):
-            permission = utility.required_permission
-            if permission is None or portal_membership.checkPermission(permission, context):
-                pairs.append(dict(id = name, title = utility.title))
+        mtool = getToolByName(context, 'portal_membership')
+        pairs = [
+            {'id': name, 'title': utility.title}
+            for name, utility in zope.component.getUtilitiesFor(ISharingPageRole)
+            if utility.required_permission is None or \
+                    mtool.checkPermission(utility.required_permission, context)]
         pairs.sort(lambda x, y: cmp(x['id'], y['id']))
         return pairs
 
@@ -105,17 +103,17 @@ class ShibbolethView(BrowserView):
     def shibpermsplugin(self):
         context = aq_inner(self.context)
         acl_users = getToolByName(context, 'acl_users')
-        return acl_users.ShibbolethPermissions
+        return acl_users['ShibbolethPermissions']
 
     def shibattrs(self):
         """
         """
         return self.shibpermsplugin().getShibAttrs()
 
-    def shibperms(self, where):
+    def shibperms(self):
         """
         """
-        path = '/'.join(where.getPhysicalPath())
+        path = '/'.join(self.context.getPhysicalPath())
         return self.shibpermsplugin().getLocalRoles(path)
 
     def listkeys(self, config):

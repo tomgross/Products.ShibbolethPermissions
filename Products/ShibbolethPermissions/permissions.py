@@ -11,6 +11,7 @@ from Products.PluggableAuthService.permissions import ManageUsers
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.PluggableAuthService import logger
 from persistent.dict import PersistentDict
+from persistent.list import PersistentList
 
 def _searchParams(pathList, paramKeys, **params):
     """Return a list of dictionaries of matched params.
@@ -31,7 +32,7 @@ def _searchParams(pathList, paramKeys, **params):
         pathKeys = ii.keys()
         pathKeys.sort()
         if pathKeys != paramKeys:
-            continue        # both the subcriteria and source dictionary
+            continue       # both the subcriteria and source dictionary
                             # must have the same set of keys
         regexes = dict([(key, re.compile(ii[key])) for key in paramKeys])
         for jj in paramKeys:
@@ -97,15 +98,13 @@ class ShibbolethPermissions(BasePlugin):
         if self.localRoles.has_key(path):
             self.localRoles[path].append(params)
         else:
-            self.localRoles[path] = [params,]
+            self.localRoles[path] = PersistentList([params,])
 
     security.declarePublic('delLocalRoles')
-    def delLocalRoles(self, path=None, row=None, **params):
+    def delLocalRoles(self, path=None, row=None):
         """Delete the specified roles."""
-        if not path:
-            if row is None and not params:
+        if path is None and row is None:
                 self.localRoles.clear()
-            return
         if not self.localRoles.has_key(path):
             return
         if row is not None:
@@ -115,59 +114,16 @@ class ShibbolethPermissions(BasePlugin):
                 logger.warning("delLocalRoles error deleting row %s from %s"
                                % (str(row), str(path)), exc_info=True)
             return
-        if params:
-            paramKeys = params.keys().sort()
-            delList = []
-            index = -1
-            for ii in self.localRoles[path]:
-                index += 1
-                if sorted(ii.keys()) != paramKeys:
-                    continue    # both the subcriteria and source dictionary
-                                # must have the same set of keys
-                regexes = {}
-                for jj in paramKeys:
-                    regexes[jj] = re.compile(ii[jj])
-                for jj in paramKeys:
-                    found = regexes[jj].search(params[jj]) and True or False
-                    if not found:
-                        break   # This doesn't match, so no point in testing more
-                if found:       # Got here as true, so it matched all, save it
-                    delList.append(index)
-            delList.reverse()
-            for ii in delList:  # Delete them off of the end first
-                del self.localRoles[path][ii]
-            return
-        del self.localRoles[path]
 
     security.declarePublic('updLocalRoles')
     def updLocalRoles(self, path=None, row=None, roles=[], **params):
         """Update the specified roles."""
-        if not path:
-            return
-        if not self.localRoles.has_key(path):
-            return
-        if row is not None:
+        if path and self.localRoles.has_key(path) and row is not None:
             try:
                 self.localRoles[path][row]['_roles'] = roles
             except (IndexError, TypeError):
                 logger.warning("updLocalRoles error updating row %s from %s"
                                % (str(row), str(path)), exc_info=True)
-            return
-        if params:
-            paramKeys = params.keys().sort()
-            for ii in self.localRoles[path]:
-                if sorted(ii.keys()) != paramKeys:
-                    continue    # both the subcriteria and source dictionary
-                                # must have the same set of keys
-                regexes = {}
-                for jj in paramKeys:
-                    regexes[jj] = re.compile(ii[jj])
-                for jj in paramKeys:
-                    found = regexes[jj].search(params[jj]) and True or False
-                    if not found:
-                        break # This doesn't match, so no point in testing more
-                else: # Got here as true, so it matched all, save it
-                    ii['_roles'] = roles
 
 class ShibbolethPermissionsHandler(ShibbolethPermissions):
     """Provide a basic ZMI interface for managing mappings.

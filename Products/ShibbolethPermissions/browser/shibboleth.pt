@@ -20,7 +20,7 @@
   account. Grant permissions to those users via the Sharing tab, above.
 </p>
 <!-- form for changing existing roles -->
-<tal:use_session tal:define="shibperms python:view.shibperms(here);
+<tal:use_session tal:define="shibperms view/shibperms;
                              shibattrs view/shibattrs;
                candidate_roles view/roles">
   <form method="post" name="shibpermissions" action="shibboleth_permissions"
