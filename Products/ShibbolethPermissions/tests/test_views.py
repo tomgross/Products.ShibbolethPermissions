@@ -29,13 +29,13 @@ class ShibbolethViewTests(ShibPermTestCase):
         context = self.portal
         request = self.portal.REQUEST
         view = ShibbolethView(context, request)
-        self.assertEqual(view.shibattrs(), None)
+        self.assertEqual(view.shibattrs(), [])
 
     def test_shibperms(self):
         context = self.portal
         request = self.portal.REQUEST
         view = ShibbolethView(context, request)
-        self.assertEqual(view.shibperms(context), [])
+        self.assertEqual(view.shibperms(), [])
 
     def test_listkeys(self):
         context = self.portal
@@ -56,8 +56,6 @@ class ShibbolethViewTests(ShibPermTestCase):
         resp = request.RESPONSE
         self.failUnlessEqual(resp.getHeader('status'), '302 Moved Temporarily')
         self.failUnlessEqual(resp.getHeader('location'), 'http://nohost/plone')
-
-del ShibPermTestCase
 
 def test_suite():
     """ This is the unittest suite """

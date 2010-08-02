@@ -18,14 +18,6 @@ def _searchParams(pathList, paramKeys, **params):
 
     pathList is what is configure for the path we're searching.
     paramKeys is the sorted list of **params' keys.
-    **params is what we're given from Shibboleth.
-    >>> from Products.ShibbolethPermissions import permissions
-    >>> path = [{'a':'1'}, {'a':'1', 'b':'2'}, {'a':'1', 'b':'3'},
-    ...         {'a':'1', 'b':'2', 'c':'3'}, {'a':'1', 'c':'3'}]
-    >>> keys = ['a', 'b']
-    >>> params = {'a':'1', 'b':'2'}
-    >>> permissions._searchParams(path, keys, **params)
-    [{'a': '1', 'b': '2'}]
     """
     rval = []
     for ii in pathList:
@@ -68,9 +60,6 @@ class ShibbolethPermissions(BasePlugin):
         and none of the params match.
 
         This simple test returns everything, which at this point is nothing.
-        >>> from Products.ShibbolethPermissions.permissions import ShibbolethPermissions
-        >>> ShibbolethPermissions('test').getLocalRoles()
-        {}
         """
         roles = {}
         for ii in self.localRoles.iterkeys():
@@ -104,8 +93,9 @@ class ShibbolethPermissions(BasePlugin):
     def delLocalRoles(self, path=None, row=None):
         """Delete the specified roles."""
         if path is None and row is None:
-                self.localRoles.clear()
-        if not self.localRoles.has_key(path):
+            self.localRoles.clear()
+            return
+        elif not self.localRoles.has_key(path):
             return
         if row is not None:
             try:
@@ -114,6 +104,7 @@ class ShibbolethPermissions(BasePlugin):
                 logger.warning("delLocalRoles error deleting row %s from %s"
                                % (str(row), str(path)), exc_info=True)
             return
+        del self.localRoles[path]
 
     security.declarePublic('updLocalRoles')
     def updLocalRoles(self, path=None, row=None, roles=[], **params):
@@ -144,12 +135,6 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
     security.declarePublic('listKeys')
     def listKeys(self, config):
         """Return sorted keys of config.
-
-        This is a generic routing, so a simple test will do.
-        >>> from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
-        >>> ShibbolethPermissionsHandler('test').listKeys(
-        ...     {'b': 2, 'a': 1, 'c': 3})
-        ['a', 'b', 'c']
         """
         try:
             rval = config.keys()

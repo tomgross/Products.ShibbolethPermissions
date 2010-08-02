@@ -123,6 +123,7 @@ doesn't do anything.
 
     >>> shibperms.delLocalRoles('/', 0)
     >>> inOrder(shibperms.getLocalRoles())
+    '/':[]
 
 Now let's try the functions that folder_localrole_form calls. That function
 (folder_localrole_shib_add) takes the middle two lists and turns that into a

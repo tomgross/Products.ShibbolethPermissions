@@ -6,20 +6,28 @@ add " -m '.*docstring.*'" to run just this test set.
 __revision__ = '0.1'
 
 import unittest
-from zope.testing import doctest
-from Testing import ZopeTestCase as ztc
-from Products.PloneTestCase import PloneTestCase as ptc
+from Products.ShibbolethPermissions.tests.base import ShibPermTestCase
+from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
 
-ptc.setupPloneSite()
-ptc.installProduct('AutoUserMakerPASPlugin')
-ptc.installProduct('ShibbolethPermissions')
+class ShibPermissionsHandlerTestCase(ShibPermTestCase):
+
+    def test_searchparams(self):
+        from Products.ShibbolethPermissions import permissions
+        path = [{'a':'1'}, {'a':'1', 'b':'2'}, {'a':'1', 'b':'3'},
+                {'a':'1', 'b':'2', 'c':'3'}, {'a':'1', 'c':'3'}]
+        keys = ['a', 'b']
+        params = {'a':'1', 'b':'2'}
+        self.assertEqual(
+            permissions._searchParams(path, keys, **params),
+            [{'a': '1', 'b': '2'}])
+
+    def test_listkeys(self):
+        sph = ShibbolethPermissionsHandler('test')
+        self.assertEqual(sph.listKeys({'b': 2, 'a': 1, 'c': 3}), ['a', 'b', 'c'])
+
+    def test_getlocalroles(self):
+        sph = ShibbolethPermissionsHandler('test')
+        self.assertEqual(sph.getLocalRoles(), {})
 
 def test_suite():
-    tests = (ztc.ZopeDocTestSuite(
-        'Products.ShibbolethPermissions.permissions',
-        test_class=ptc.FunctionalTestCase,
-        optionflags=doctest.REPORT_ONLY_FIRST_FAILURE))
-    return unittest.TestSuite(tests)
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)

@@ -7,7 +7,7 @@ __revision__ = '0.1'
 import glob
 import os
 import unittest
-from zope.testing import doctest
+import doctest
 from Testing import ZopeTestCase as ztc
 from Products.PloneTestCase import PloneTestCase as ptc
 from Globals import package_home
@@ -27,6 +27,3 @@ def test_suite():
                 optionflags=doctest.REPORT_ONLY_FIRST_FAILURE)
              for filename in listDoctests()]
     return unittest.TestSuite(tests)
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')
