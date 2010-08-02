@@ -33,7 +33,7 @@ def _searchParams(pathList, paramKeys, **params):
         if pathKeys != paramKeys:
             continue        # both the subcriteria and source dictionary
                             # must have the same set of keys
-	regexes = dict([(key, re.compile(ii[key])) for key in paramKeys])
+        regexes = dict([(key, re.compile(ii[key])) for key in paramKeys])
         for jj in paramKeys:
             found = regexes[jj].search(params[jj]) and True or False
             if not found:
@@ -103,12 +103,12 @@ class ShibbolethPermissions(BasePlugin):
     def delLocalRoles(self, path=None, row=None, **params):
         """Delete the specified roles."""
         if not path:
-            if not row and not params:
+            if row is None and not params:
                 self.localRoles.clear()
             return
         if not self.localRoles.has_key(path):
             return
-        if row:
+        if row is not None:
             try:
                 del self.localRoles[path][row]
             except (IndexError, TypeError):
@@ -183,7 +183,7 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
 
     # Add a tab that calls that method:
     manage_options = ({'label': 'Manage', 'action': 'manage_config'},) \
-                     + BasePlugin.manage_options
+                   + BasePlugin.manage_options
 
     security.declarePublic('listKeys')
     def listKeys(self, config):
