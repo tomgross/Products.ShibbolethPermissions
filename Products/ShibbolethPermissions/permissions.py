@@ -13,6 +13,9 @@ from Products.PluggableAuthService.PluggableAuthService import logger
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
 
+from Products.AutoUserMakerPASPlugin.auth import httpSharingTokensKey
+from Products.AutoUserMakerPASPlugin.auth import httpSharingLabelsKey
+
 def _searchParams(pathList, paramKeys, **params):
     """Return a list of dictionaries of matched params.
 
@@ -47,6 +50,16 @@ class ShibbolethPermissions(BasePlugin):
         self.title = title
         self.localRoles = PersistentDict()
         self.retest = re.compile(' ')
+
+    security.declarePrivate('getShibValues')
+    def getShibValues(self):
+        autoUserMaker = getToolByName(self, 'AutoUserMakerPASPlugin')
+        config = autoUserMaker.getSharingConfig()
+        request = getattr(self, 'REQUEST')
+        req_environ = getattr(request, 'environ', {})
+        return dict([(ii, req_environ.get(ii))
+                     for ii in config[httpSharingTokensKey]
+                     if req_environ.has_key(ii)])
 
     security.declarePublic('getLocalRoles')
     def getLocalRoles(self, path=None, **params):
@@ -149,9 +162,9 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
         autoUserMaker = getToolByName(self, 'AutoUserMakerPASPlugin')
         config = autoUserMaker.getSharingConfig()
         rval = []
-        for ii, token in enumerate(config['http_sharing_tokens']):
+        for ii, token in enumerate(config[httpSharingTokensKey]):
             try:
-                rval.append((config['http_sharing_labels'][ii],
+                rval.append((config[httpSharingLabelsKey][ii],
                              token))
             except IndexError:
                 rval.append((token, token))

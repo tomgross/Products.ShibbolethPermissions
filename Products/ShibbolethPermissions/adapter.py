@@ -22,15 +22,14 @@ class ShibLocalRoleAdapter(object):
     def getRoles(self, principal_id):
         """ Returns the roles for the given principal in context
         """
-        portal_state = self.context.restrictedTraverse('@@plone_portal_state')
+        portal_state = self.context.unrestrictedTraverse('@@plone_portal_state')
         portal = portal_state.portal()
         acl_users = portal['acl_users']
         try:
             shibPerms = acl_users['ShibbolethPermissions']
-            usermaker = acl_users['AutoUserMakerPASPlugin']
         except KeyError:
             return []
-        uservals = usermaker.getshibattrs()
+        uservals = shibPerms.getShibValues()
         if not uservals:
             return []
 
