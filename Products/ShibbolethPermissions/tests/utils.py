@@ -2,14 +2,7 @@ from Products.PluggableAuthService.interfaces.authservice import IPluggableAuthS
 from Products.PluggableAuthService.interfaces.plugins import IAuthenticationPlugin, IExtractionPlugin
 from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
 from Products.AutoUserMakerPASPlugin.auth import ApacheAuthPluginHandler
-
-def _firstIdOfClass(container, class_):
-    """Return the id of the first object of class `class_` within `container`.
-    If there is none, return None."""
-    for id in container.objectIds():
-        if isinstance(container[id], class_):
-            return id
-    return None
+from Products.AutoUserMakerPASPlugin.Extensions.Install import _firstIdOfClass
 
 def addShibbolethPermissions(context):
     """Find the nearest acl_users and adds and activates an ShibbolethPermissions.
@@ -53,6 +46,8 @@ def addAutoUserMakerPASPlugin(context):
 
     plugins = acl_users.plugins
     for interface in [IAuthenticationPlugin, IExtractionPlugin]:
-        plugins.activatePlugin(interface, pluginId)
+         plugins = list(acl_users.plugins._getPlugins(interface))
+         if not pluginId in plugins:
+             plugins.activatePlugin(interface, pluginId)
 
     return pas[pluginId]

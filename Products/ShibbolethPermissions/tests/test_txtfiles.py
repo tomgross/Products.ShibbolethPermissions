@@ -9,15 +9,12 @@ import os
 import unittest
 import doctest
 from Testing import ZopeTestCase as ztc
-from Products.PloneTestCase import PloneTestCase as ptc
-from Globals import package_home
 from Products.ShibbolethPermissions import shib_globals
 
 from Products.ShibbolethPermissions.tests.base import ShibPermFunctionalTestCase
 
 def listDoctests():
-    home = package_home(shib_globals)
-    return [ii for ii in glob.glob(os.path.sep.join([home + '/tests', '*.txt']))]
+    return glob.glob(os.path.join(os.path.dirname(__file__), '*.txt'))
 
 def test_suite():
     tests = [ztc.FunctionalDocFileSuite(
