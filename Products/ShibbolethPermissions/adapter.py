@@ -1,3 +1,4 @@
+import re
 from zope.interface import Interface, implements
 from zope.component import adapts
 from borg.localrole.interfaces import ILocalRoleProvider
@@ -7,7 +8,7 @@ from ZODB.POSException import ConflictError
 
 from Products.Archetypes.interfaces import IBaseObject
 
-from Acquisition import aq_inner
+from Acquisition import aq_inner, aq_parent, aq_chain
 
 class ShibLocalRoleAdapter(object):
     """ Looks at shibboleth headers to find local roles
@@ -19,22 +20,9 @@ class ShibLocalRoleAdapter(object):
     def __init__(self, context):
         self.context = context
 
-    def getRoles(self, principal_id):
-        """ Returns the roles for the given principal in context
-        """
-        portal_state = self.context.unrestrictedTraverse('@@plone_portal_state')
-        portal = portal_state.portal()
-        acl_users = portal['acl_users']
-        try:
-            shibPerms = acl_users['ShibbolethPermissions']
-        except KeyError:
-            return []
-        uservals = shibPerms.getShibValues()
-        if not uservals:
-            return []
 
-        localroles = shibPerms.getLocalRoles()
-        regexs = localroles.get('/'.join(self.context.getPhysicalPath()), None)
+    def _findroles(self, context, rolemap, uservals):
+        regexs = rolemap.get('/'.join(context.getPhysicalPath()), None)
         if regexs == None:
             return []
 
@@ -60,12 +48,37 @@ class ShibLocalRoleAdapter(object):
                     except (ConflictError, KeyboardInterrupt):
                         raise
                     except Exception, e:
-                        pass
+                        found = False
+                        break
                     if not found:
                         break
             if found:
                 return ii['_roles']
         return []
+
+
+    def getRoles(self, principal_id):
+        """ Returns the roles for the given principal in context
+        """
+        portal_state = self.context.unrestrictedTraverse('@@plone_portal_state')
+        portal = portal_state.portal()
+        acl_users = portal['acl_users']
+        try:
+            shibPerms = acl_users['ShibbolethPermissions']
+        except KeyError:
+            return []
+        uservals = shibPerms.getShibValues()
+        if not uservals:
+            return []
+
+        localroles = shibPerms.getLocalRoles()
+        roles = self._findroles(self.context, localroles, uservals)
+        parent = aq_parent(aq_inner(self.context))
+        for obj in aq_chain(parent):
+            if obj == portal:
+                break
+            roles.extend(self._findroles(obj, localroles, uservals))
+        return roles
 
     def getAllRoles(self):
         """ Returns all the local roles assigned in this context:

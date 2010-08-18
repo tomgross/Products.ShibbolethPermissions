@@ -1,4 +1,5 @@
-"""Classes to manage local permissions from Shibboleth attributes."""
+"""Classes to manage local permissions from Shibboleth attributes.
+"""
 __revision__ = '0.1'
 
 import re
