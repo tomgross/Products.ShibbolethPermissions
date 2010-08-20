@@ -2,22 +2,19 @@ import unittest
 
 from Products.ShibbolethPermissions.tests.base import ShibPermTestCase
 from Products.ShibbolethPermissions.tests.utils import addShibbolethPermissions
-from Products.AutoUserMakerPASPlugin.tests.utils import \
-    addAutoUserMakerPASPlugin
 
 from Products.ShibbolethPermissions.adapter import ShibLocalRoleAdapter
 
 class ShibbolethAdapterTests(ShibPermTestCase):
 
     def afterSetUp(self):
-        addAutoUserMakerPASPlugin(self.portal)
         addShibbolethPermissions(self.portal)
         self.folder.invokeFactory('Folder', 'layer1a')
         self.folder.layer1a.invokeFactory('Folder', 'layer2a')
         self.folder.invokeFactory('Folder', 'layer1b')
         acl_users = self.portal.acl_users
         self.plugin = acl_users.ShibbolethPermissions
-        acl_users.AutoUserMakerPASPlugin.manage_changeProperties(
+        self.plugin.manage_changeProperties(
             {'http_sharing_tokens': ['HTTP_DUMMY_ATTR']})
         path = '/'.join(self.folder.layer1a.getPhysicalPath())
         self.plugin.addLocalRoles(path, {'HTTP_DUMMY_ATTR': 'eggs'},

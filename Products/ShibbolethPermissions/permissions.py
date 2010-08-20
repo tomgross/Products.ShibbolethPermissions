@@ -14,8 +14,12 @@ from Products.PluggableAuthService.PluggableAuthService import logger
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
 
-from Products.AutoUserMakerPASPlugin.auth import httpSharingTokensKey
-from Products.AutoUserMakerPASPlugin.auth import httpSharingLabelsKey
+try:
+    from Products.AutoUserMakerPASPlugin.auth import httpSharingTokensKey
+    from Products.AutoUserMakerPASPlugin.auth import httpSharingLabelsKey
+except ImportError:
+    httpSharingTokensKey = 'http_sharing_tokens'
+    httpSharingLabelsKey = 'http_sharing_labels'
 
 def _searchParams(pathList, paramKeys, **params):
     """Return a list of dictionaries of matched params.
@@ -51,11 +55,40 @@ class ShibbolethPermissions(BasePlugin):
         self.title = title
         self.localRoles = PersistentDict()
         self.retest = re.compile(' ')
+        config = ((httpSharingTokensKey, 'lines', 'w', []),
+                  (httpSharingLabelsKey, 'lines', 'w', []))
+        # Create any missing properties
+        ids = {}
+        for prop in config:
+            # keep track of property names for quick lookup
+            ids[prop[0]] = True
+            if prop[0] not in self.propertyIds():
+                self.manage_addProperty(id=prop[0],
+                                        type=prop[1],
+                                        value=prop[3])
+                self._properties[-1]['mode'] = prop[2]
+        # Delete any existing properties that aren't in config
+        ids.update({'prefix':'', 'title':''})
+        for prop in self._properties:
+            if prop['id'] not in ids:
+                self.manage_delProperties(prop['id'])
+
+    security.declarePublic('getSharingConfig')
+    def getSharingConfig(self):
+        """Return the items end users can use to share with.
+
+        Verify it returns an empty configuration.
+        >>> from Products.ShibbolethPermissions.permissions import ShibbolethPermissions
+        >>> handler = ShibbolethPermissions()
+        >>> handler.getSharingConfig()
+        {'http_sharing_tokens': (), 'http_sharing_labels': ()}
+        """
+        return {httpSharingTokensKey: self.getProperty(httpSharingTokensKey),
+                 httpSharingLabelsKey: self.getProperty(httpSharingLabelsKey)}
 
     security.declarePrivate('getShibValues')
     def getShibValues(self):
-        autoUserMaker = getToolByName(self, 'AutoUserMakerPASPlugin')
-        config = autoUserMaker.getSharingConfig()
+        config = self.getSharingConfig()
         request = getattr(self, 'REQUEST')
         req_environ = getattr(request, 'environ', {})
         return dict([(ii, req_environ.get(ii))
@@ -146,6 +179,27 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
     manage_options = ({'label': 'Manage', 'action': 'manage_config'},) \
                    + BasePlugin.manage_options
 
+    security.declareProtected(ManageUsers, 'manage_changeMapping')
+    def manage_changeMapping(self, REQUEST=None):
+        """Update my configuration based on form data.
+
+        Verify it returns nothing. More testing is done in the integration file.
+        >>> from Products.ShibbolethPermissions.auth import \
+                ShibbolethPermissionsHandler
+        >>> handler = ShibbolethPermissionsHandler('someId')
+        >>> handler.manage_changeConfig()
+
+        """
+        if not REQUEST:
+            return None
+        reqget = REQUEST.form.get
+        # Save the form values
+        self.manage_changeProperties({
+            httpSharingTokensKey: reqget(httpSharingTokensKey, ''),
+            httpSharingLabelsKey: reqget(httpSharingLabelsKey, '')})
+        return REQUEST.RESPONSE.redirect('%s/manage_config' %
+                                         self.absolute_url())
+
     security.declarePublic('listKeys')
     def listKeys(self, config):
         """Return sorted keys of config.
@@ -160,8 +214,7 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
     security.declarePublic('getShibAttrs')
     def getShibAttrs(self):
         """Return a list of (label, attribute) tupples."""
-        autoUserMaker = getToolByName(self, 'AutoUserMakerPASPlugin')
-        config = autoUserMaker.getSharingConfig()
+        config = self.getSharingConfig()
         rval = []
         for ii, token in enumerate(config[httpSharingTokensKey]):
             try:

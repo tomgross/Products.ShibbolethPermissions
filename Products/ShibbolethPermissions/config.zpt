@@ -4,10 +4,37 @@
 <div tal:define="form_title string:Shibboleth Permissions Configuration"
   tal:replace="structure here/manage_tabs"> TABS </div>
 
+
+    <h3 i18n:translate="heading_user_sharing_headers">User Sharing Headers</h3>
+    <form action="manage_changeMapping"
+          tal:attributes="action python:here.absolute_url()+'/manage_changeMapping'"
+          method="POST">
+    <p tal:define="config context/getSharingConfig">
+
+      <label for="http_sharing_tokens" i18n:translate="description_sharing_token_list">
+        Make the items below available for user sharing.
+        <strong>Enter one per line.</strong> Use the item in the
+        second box as the label users see. Labels must be in the same order as
+        the sources. Non-existant labels will use the source name.
+      </label><br />
+      <textarea name="http_sharing_tokens" rows="10" cols="50"
+                tal:content="python:'\n'.join(config['http_sharing_tokens'])">
+      </textarea>
+      <textarea name="http_sharing_labels" rows="10" cols="50"
+                tal:content="python:'\n'.join(config['http_sharing_labels'])">
+      </textarea>
+
+
+    </p>
+     <input type="submit" i18n:domain="plone"
+             i18n:attributes="value" value="Save" />
+</form>
+
 <tal:block tal:omit-tag="" i18n:domain="ShibbolethPermissions"
  tal:define="config context/getLocalRoles">
 
   <h3 i18n:translate="heading_permissions">Shibboleth Permissions</h3>
+
   <tal:use_session tal:condition="python:config">
     <form method="post" name="shibpermissions"
           action="manage_changeConfig"

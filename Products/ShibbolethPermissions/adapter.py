@@ -65,8 +65,10 @@ class ShibLocalRoleAdapter(object):
         acl_users = portal['acl_users']
         try:
             shibPerms = acl_users['ShibbolethPermissions']
+            borg = acl_users['borg_localroles']
         except KeyError:
             return []
+
         uservals = shibPerms.getShibValues()
         if not uservals:
             return []
@@ -74,10 +76,10 @@ class ShibLocalRoleAdapter(object):
         localroles = shibPerms.getLocalRoles()
         roles = self._findroles(self.context, localroles, uservals)
         parent = aq_parent(aq_inner(self.context))
-        for obj in aq_chain(parent):
+        for obj in borg._parent_chain(parent):
+            roles.extend(self._findroles(obj, localroles, uservals))
             if obj == portal:
                 break
-            roles.extend(self._findroles(obj, localroles, uservals))
         return roles
 
     def getAllRoles(self):
