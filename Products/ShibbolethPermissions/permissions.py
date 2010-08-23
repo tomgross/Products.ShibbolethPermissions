@@ -1,4 +1,5 @@
-"""Classes to manage local permissions from Shibboleth attributes."""
+"""Classes to manage local permissions from Shibboleth attributes.
+"""
 __revision__ = '0.1'
 
 import re
@@ -12,6 +13,15 @@ from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.PluggableAuthService import logger
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
+
+try:
+    from Products.AutoUserMakerPASPlugin.auth import httpSharingTokensKey
+    from Products.AutoUserMakerPASPlugin.auth import httpSharingLabelsKey
+    IS_AUMPAS_INSTALLED = True
+except ImportError:
+    httpSharingTokensKey = 'http_sharing_tokens'
+    httpSharingLabelsKey = 'http_sharing_labels'
+    IS_AUMPAS_INSTALLED = False
 
 def _searchParams(pathList, paramKeys, **params):
     """Return a list of dictionaries of matched params.
@@ -47,6 +57,50 @@ class ShibbolethPermissions(BasePlugin):
         self.title = title
         self.localRoles = PersistentDict()
         self.retest = re.compile(' ')
+        config = ((httpSharingTokensKey, 'lines', 'w', []),
+                  (httpSharingLabelsKey, 'lines', 'w', []))
+        # Create any missing properties
+        ids = {}
+        for prop in config:
+            # keep track of property names for quick lookup
+            ids[prop[0]] = True
+            if prop[0] not in self.propertyIds():
+                self.manage_addProperty(id=prop[0],
+                                        type=prop[1],
+                                        value=prop[3])
+                self._properties[-1]['mode'] = prop[2]
+        # Delete any existing properties that aren't in config
+        ids.update({'prefix':'', 'title':''})
+        for prop in self._properties:
+            if prop['id'] not in ids:
+                self.manage_delProperties(prop['id'])
+
+    security.declarePublic('getSharingConfig')
+    def getSharingConfig(self):
+        """Return the items end users can use to share with.
+
+        Verify it returns an empty configuration.
+        >>> from Products.ShibbolethPermissions.permissions import ShibbolethPermissions
+        >>> handler = ShibbolethPermissions()
+        >>> handler.getSharingConfig()
+        {'http_sharing_tokens': (), 'http_sharing_labels': ()}
+        """
+        if IS_AUMPAS_INSTALLED:
+            autoUserMaker = getToolByName(self, 'AutoUserMakerPASPlugin')
+            return autoUserMaker.getSharingConfig()
+        else:
+            return {
+                httpSharingTokensKey: self.getProperty(httpSharingTokensKey),
+                httpSharingLabelsKey: self.getProperty(httpSharingLabelsKey)}
+
+    security.declarePrivate('getShibValues')
+    def getShibValues(self):
+        config = self.getSharingConfig()
+        request = getattr(self, 'REQUEST')
+        req_environ = getattr(request, 'environ', {})
+        return dict([(ii, req_environ.get(ii))
+                     for ii in config[httpSharingTokensKey]
+                     if req_environ.has_key(ii)])
 
     security.declarePublic('getLocalRoles')
     def getLocalRoles(self, path=None, **params):
@@ -62,20 +116,21 @@ class ShibbolethPermissions(BasePlugin):
         This simple test returns everything, which at this point is nothing.
         """
         roles = {}
+        param_keys = params.keys().sort()
         for ii in self.localRoles.iterkeys():
             roles[ii] = list(self.localRoles[ii])
         if not path and not params:
             return roles        # no select given, so return everything
         if path:
             if not roles.has_key(path):
-                return []       # path not found, so return nothing
-            if not params:      # path found, but no subcriteria so return whole list
+                return []   # path not found, so return nothing
+            if not params:  # path found, but no subcriteria so return whole list
                 return roles[path]
-            return _searchParams(roles[path], params.keys().sort(), **params)
+            return _searchParams(roles[path], param_keys, **params)
         # no path, but params, so return a path keyed dict of lists of dicts
         rval = {}
         for ii in roles.iterkeys(): # each key is a Plone path
-            found = _searchParams(roles[ii], params.keys().sort(), **params)
+            found = _searchParams(roles[ii], param_keys, **params)
             if found:           # Don't save empty lists
                 rval[ii] = found
         return rval
@@ -130,6 +185,27 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
     manage_options = ({'label': 'Manage', 'action': 'manage_config'},) \
                    + BasePlugin.manage_options
 
+    security.declareProtected(ManageUsers, 'manage_changeMapping')
+    def manage_changeMapping(self, REQUEST=None):
+        """Update my configuration based on form data.
+
+        Verify it returns nothing. More testing is done in the integration file.
+        >>> from Products.ShibbolethPermissions.auth import \
+                ShibbolethPermissionsHandler
+        >>> handler = ShibbolethPermissionsHandler('someId')
+        >>> handler.manage_changeConfig()
+
+        """
+        if not REQUEST:
+            return None
+        reqget = REQUEST.form.get
+        # Save the form values
+        self.manage_changeProperties({
+            httpSharingTokensKey: reqget(httpSharingTokensKey, ''),
+            httpSharingLabelsKey: reqget(httpSharingLabelsKey, '')})
+        return REQUEST.RESPONSE.redirect('%s/manage_config' %
+                                         self.absolute_url())
+
     security.declarePublic('listKeys')
     def listKeys(self, config):
         """Return sorted keys of config.
@@ -144,12 +220,11 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
     security.declarePublic('getShibAttrs')
     def getShibAttrs(self):
         """Return a list of (label, attribute) tupples."""
-        autoUserMaker = getToolByName(self, 'AutoUserMakerPASPlugin')
-        config = autoUserMaker.getSharingConfig()
+        config = self.getSharingConfig()
         rval = []
-        for ii, token in enumerate(config['http_sharing_tokens']):
+        for ii, token in enumerate(config[httpSharingTokensKey]):
             try:
-                rval.append((config['http_sharing_labels'][ii],
+                rval.append((config[httpSharingLabelsKey][ii],
                              token))
             except IndexError:
                 rval.append((token, token))
@@ -164,5 +239,9 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
             self.delLocalRoles(ii)
         return REQUEST.RESPONSE.redirect('%s/manage_config' %
                                          self.absolute_url())
+
+    security.declarePublic('isAutoUserMakerPASinstalled')
+    def isAutoUserMakerPASinstalled(self):
+        return IS_AUMPAS_INSTALLED
 
 InitializeClass(ShibbolethPermissionsHandler)

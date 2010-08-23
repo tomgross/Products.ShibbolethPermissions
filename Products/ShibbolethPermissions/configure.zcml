@@ -6,10 +6,16 @@
 
 	<include file="permissions.zcml" />
 	<include package=".browser" />
-	<genericsetup:registerProfile 
-		name="default" 
-		title="ShibbolethPermissions profile" 
-		directory="profiles/default" 
-		description="Extension profile for ShibbolethPermissions." 
+	<genericsetup:registerProfile
+		name="default"
+		title="ShibbolethPermissions profile"
+		directory="profiles/default"
+		description="Extension profile for ShibbolethPermissions."
 		provides="Products.GenericSetup.interfaces.EXTENSION" />
+
+  <adapter
+      factory=".adapter.ShibLocalRoleAdapter"
+      name="shibboleth"
+      />
+
 </configure>

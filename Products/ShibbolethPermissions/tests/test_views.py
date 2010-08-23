@@ -2,8 +2,6 @@ import unittest
 
 from Products.ShibbolethPermissions.tests.base import ShibPermTestCase
 from Products.ShibbolethPermissions.tests.utils import addShibbolethPermissions
-from Products.AutoUserMakerPASPlugin.tests.utils import \
-    addAutoUserMakerPASPlugin
 
 from Products.ShibbolethPermissions.browser.permissions import _getList
 from Products.ShibbolethPermissions.browser.permissions import ShibbolethView
@@ -11,7 +9,6 @@ from Products.ShibbolethPermissions.browser.permissions import ShibbolethView
 class ShibbolethViewTests(ShibPermTestCase):
 
     def afterSetUp(self):
-        addAutoUserMakerPASPlugin(self.portal)
         addShibbolethPermissions(self.portal)
 
     def test_getlist(self):

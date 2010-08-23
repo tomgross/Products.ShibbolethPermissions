@@ -5,7 +5,7 @@ Extend Plone's folder_localrole_form to grant permissions to Shibboleth users.
 
 *ShibbolethPermissions* replaces the folder_localrole_form with a slightly
 modified page that has a Shibboleth section added. The Shibboleth section
-depends on configuration made in AutoUserMakerPASPlugin. When configured, when
+depends on configuration made in the ZMI. When configured, when
 a new user logs in via Shibboleth, permissions will be granted on existing
 objects based on user specified regular expressions.
 
@@ -16,9 +16,7 @@ they already exist as Plone users.
 Requirements
 ============
 
-* Zope and Plone. Tested with Zope 2.10.11 and Plone 3.3.4
-
-* AutoUserMakerPASPlugin.
+* Zope and Plone. Tested with Zope 2.10.11 and Plone 3.3.5
 
 Installation
 ============
@@ -38,8 +36,7 @@ Using Shibboleth Permissions
 For Administrators
 ------------------
 
-1. In the ZMI, in the acl_users/AutoUserMakerPASPlugin's config tab, scroll
-   to the end.
+1. In the ZMI, in the acl_users/ShibbolethPermissions's config tab.
 
 2. There are two input areas: the left one lists all Shibboleth attributes that
    will be available to users. Examples are all of the attributes listed in the
@@ -85,26 +82,6 @@ shibboleth pattern(s)'.
 
 To change the source values for a rule, create a new rule, then delete the old
 one.
-
-
-Design Rationale
-================
-
-I made the decision to have the configuration done in AutoUserMakerPASPlugin for
-two reasons. First is just that the other Shibboleth attribute configuration is
-already there, making for easy reference to what attributes are already in use.
-Second, because that plugin does the assignment of roles when a user logs in via
-Shibboleth for the first time. While I can see the utility of making an
-interface for AutoUserMakerPASPlugin that ShibbolethPermissions implements as a
-way of decoupling ShibbolethPermissions from AutoUserMakerPASPlugin, I don't
-have any plan to do that.
-
-The plan is for this to be a drop in plugin that works with existing themes,
-rather than having to modify a theme to accomidate Shibboleth Permissions. Any
-theme that modifies folder_localrole_form in Plone 2.5 (not that I can imaging
-why any would do that) or the sharing.pt file in Plone 3.0 will need to be
-modified by hand.
-
 
 Testing
 =======

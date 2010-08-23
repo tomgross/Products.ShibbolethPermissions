@@ -6,10 +6,9 @@ add " -m '.*docstring.*'" to run just this test set.
 __revision__ = '0.1'
 
 import unittest
-from Products.ShibbolethPermissions.tests.base import ShibPermTestCase
 from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
 
-class ShibPermissionsHandlerTestCase(ShibPermTestCase):
+class ShibPermissionsHandlerTestCase(unittest.TestCase):
 
     def test_searchparams(self):
         from Products.ShibbolethPermissions import permissions

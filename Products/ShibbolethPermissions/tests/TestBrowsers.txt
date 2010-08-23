@@ -74,14 +74,11 @@ Now we need to configure attributes that a user can share with.
     ...     def __init__(self, form={}):
     ...         self.form = form
     ...         self.RESPONSE = MockResponse()
-    >>> apache = utils.addAutoUserMakerPASPlugin(self.portal)
-    >>> apache
-    <ApacheAuthPluginHandler at /plone/acl_users/AutoUserMakerPASPlugin>
 
     >>> request = MockForm({"http_sharing_tokens": 'HTTP_TEST_USER',
     ...                     "http_sharing_labels": 'TEST_TITLE'})
-    >>> apache.manage_changeConfig(request)
-    >>> config = apache.getConfig()
+    >>> shibperms.manage_changeMapping(request)
+    >>> config = shibperms.getSharingConfig()
     >>> config['http_sharing_tokens']
     ('HTTP_TEST_USER',)
 
