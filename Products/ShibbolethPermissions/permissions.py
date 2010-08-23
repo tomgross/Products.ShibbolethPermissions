@@ -17,9 +17,11 @@ from persistent.list import PersistentList
 try:
     from Products.AutoUserMakerPASPlugin.auth import httpSharingTokensKey
     from Products.AutoUserMakerPASPlugin.auth import httpSharingLabelsKey
+    IS_AUMPAS_INSTALLED = True
 except ImportError:
     httpSharingTokensKey = 'http_sharing_tokens'
     httpSharingLabelsKey = 'http_sharing_labels'
+    IS_AUMPAS_INSTALLED = False
 
 def _searchParams(pathList, paramKeys, **params):
     """Return a list of dictionaries of matched params.
@@ -83,8 +85,13 @@ class ShibbolethPermissions(BasePlugin):
         >>> handler.getSharingConfig()
         {'http_sharing_tokens': (), 'http_sharing_labels': ()}
         """
-        return {httpSharingTokensKey: self.getProperty(httpSharingTokensKey),
-                 httpSharingLabelsKey: self.getProperty(httpSharingLabelsKey)}
+        if IS_AUMPAS_INSTALLED:
+            autoUserMaker = getToolByName(self, 'AutoUserMakerPASPlugin')
+            return autoUserMaker.getSharingConfig()
+        else:
+            return {
+                httpSharingTokensKey: self.getProperty(httpSharingTokensKey),
+                httpSharingLabelsKey: self.getProperty(httpSharingLabelsKey)}
 
     security.declarePrivate('getShibValues')
     def getShibValues(self):
@@ -234,5 +241,9 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
             self.delLocalRoles(ii)
         return REQUEST.RESPONSE.redirect('%s/manage_config' %
                                          self.absolute_url())
+
+    security.declarePublic('isAutoUserMakerPASinstalled')
+    def isAutoUserMakerPASinstalled(self):
+        return IS_AUMPAS_INSTALLED
 
 InitializeClass(ShibbolethPermissionsHandler)
