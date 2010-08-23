@@ -2,6 +2,7 @@
 ======================
 
  - rewrite core to provide roles via an ILocalRoleProvider-adapter
+ - removed hard dependency on AutoUserMakerPASPlugin
 
 0.8a2 (2010-04-20)
 ==================
