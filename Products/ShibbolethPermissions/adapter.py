@@ -27,33 +27,27 @@ class ShibLocalRoleAdapter(object):
             return []
 
         for ii in regexs:
-            found = True
             # Make sure the incoming user has all of the
             # needed attributes
             for name in ii.iterkeys():
                 if name == '_roles':
                     continue
-                if not uservals.has_key(name):
-                    found = False
-                if not found:
+                if not name in uservals:
                     break
-            if found:
+            else:
                 for name, pattern in ii.iteritems():
                     if name == '_roles' or uservals[name] is None:
                         continue
                     try:
                         regex = re.compile(pattern)
                         if not regex.search(uservals[name]):
-                            found = False
+                            break
                     except (ConflictError, KeyboardInterrupt):
                         raise
                     except Exception, e:
-                        found = False
                         break
-                    if not found:
-                        break
-            if found:
-                return ii['_roles']
+                else:
+                    return list(ii['_roles'])
         return []
 
 
@@ -74,9 +68,8 @@ class ShibLocalRoleAdapter(object):
             return []
 
         localroles = shibPerms.getLocalRoles()
-        roles = self._findroles(self.context, localroles, uservals)
-        parent = aq_parent(aq_inner(self.context))
-        for obj in borg._parent_chain(parent):
+        roles = []
+        for obj in borg._parent_chain(self.context):
             roles.extend(self._findroles(obj, localroles, uservals))
             if obj == portal:
                 break

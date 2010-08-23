@@ -109,20 +109,21 @@ class ShibbolethPermissions(BasePlugin):
         This simple test returns everything, which at this point is nothing.
         """
         roles = {}
+        param_keys = params.keys().sort()
         for ii in self.localRoles.iterkeys():
             roles[ii] = list(self.localRoles[ii])
         if not path and not params:
             return roles        # no select given, so return everything
         if path:
             if not roles.has_key(path):
-                return []       # path not found, so return nothing
-            if not params:      # path found, but no subcriteria so return whole list
+                return []   # path not found, so return nothing
+            if not params:  # path found, but no subcriteria so return whole list
                 return roles[path]
-            return _searchParams(roles[path], params.keys().sort(), **params)
+            return _searchParams(roles[path], param_keys, **params)
         # no path, but params, so return a path keyed dict of lists of dicts
         rval = {}
         for ii in roles.iterkeys(): # each key is a Plone path
-            found = _searchParams(roles[ii], params.keys().sort(), **params)
+            found = _searchParams(roles[ii], param_keys, **params)
             if found:           # Don't save empty lists
                 rval[ii] = found
         return rval
