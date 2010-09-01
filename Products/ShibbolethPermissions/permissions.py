@@ -210,12 +210,10 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
     def listKeys(self, config):
         """Return sorted keys of config.
         """
-        try:
-            rval = config.keys()
-        except (AttributeError, TypeError):
+        if hasattr(config, 'keys'):
+            return sorted(config.keys())
+        else:
             return []
-        rval.sort()
-        return rval
 
     security.declarePublic('getShibAttrs')
     def getShibAttrs(self):

@@ -7,7 +7,7 @@
     <tal:cond condition="not:context/isAutoUserMakerPASinstalled">
     <h3 i18n:translate="heading_user_sharing_headers">User Sharing Headers</h3>
     <form action="manage_changeMapping"
-          tal:attributes="action python:here.absolute_url()+'/manage_changeMapping'"
+          tal:attributes="action string:${here/absolute_url}/manage_changeMapping"
           method="POST">
     <p tal:define="config context/getSharingConfig">
 
@@ -36,10 +36,10 @@
 
   <h3 i18n:translate="heading_permissions">Shibboleth Permissions</h3>
 
-  <tal:use_session tal:condition="python:config">
+  <tal:use_session tal:condition="config">
     <form method="post" name="shibpermissions"
           action="manage_changeConfig"
-          tal:attributes="action python:here.absolute_url()+'/manage_changeConfig'">
+          tal:attributes="action string:${here/absolute_url}/manage_changeConfig">
       <table cellspacing="0" cellpadding="2" border="0">
         <thead>
           <tr class="list-header">
@@ -49,7 +49,7 @@
             <th width="15%" align="left"><div class="list-item">Plone Role(s)</div></th>
           </tr>
         </thead>
-        <tbody tal:define="keys python:context.listKeys(config)">
+        <tbody tal:define="keys config/keys">
           <tr class="row-hilite" tal:repeat="plonepath keys"
               tal:attributes="class python:repeat['plonepath'].odd() and 'row-normal' or default">
             <td width="5%">
@@ -58,26 +58,25 @@
                      tal:attributes="value plonepath" />
             </td>
             <td width="20%" align="left">
-              <a href="URL" tal:attributes="href python:root.absolute_url() + plonepath"
+              <a href="URL"
+                 tal:attributes="href string:${root/absolute_url}${plonepath}"
                  tal:content="plonepath">PATH</a></td>
             <td width="75%" colspan="2">
               <table width="100%" cellspacing="0" cellpadding="2" border="0">
                 <tr class="row-hilite" tal:repeat="row python:config[plonepath]"
                     tal:attributes="class python:repeat['row'].odd() and 'row-normal' or default">
                   <td width="80%" valign="top">
-                    <tal:block tal:repeat="ii python:range(len(row))"
-                               tal:define="keys python:context.listKeys(row);
-                                           size python:len(row) - 1;">
-                      <tal:block tal:condition="python:keys[ii] != '_roles'">
-                        <span valign="top" tal:content="python:keys[ii]" tal:omit-tag="">ATTR</span> =
-                        '<span valign="top" tal:content="python:row[keys[ii]]" tal:omit-tag="">VAL</span>'
+                    <tal:block tal:repeat="ii row">
+                      <tal:block tal:condition="python:ii != '_roles'">
+                        <tal:attr tal:replace="ii">ATTR</tal:attr> =
+                        '<tal:value tal:replace="python:dict(row)[ii]">VAL</tal:value>'
                       </tal:block>
-                      <tal:block tal:condition="python:size > 1 and ii < size">
+                      <tal:block tal:condition="not:repeat/row/end">
                         <br />
                       </tal:block>
                     </tal:block>
                   </td>
-                  <td valign="top" tal:content="python:', '.join(row['_roles'])">ROLE</td>
+                  <td valign="top" tal:content="python:', '.join(dict(row)['_roles'])">ROLE</td>
                 </tr>
               </table>
             </td>
@@ -93,7 +92,7 @@
     </form>
   </tal:use_session>
 
-  <tal:use_session tal:condition="python:not config">
+  <tal:use_session tal:condition="not:config">
     <p>No local permissions have been granted.</p>
   </tal:use_session>
 </tal:block>
