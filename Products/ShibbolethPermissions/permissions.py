@@ -86,12 +86,11 @@ class ShibbolethPermissions(BasePlugin):
         {'http_sharing_tokens': (), 'http_sharing_labels': ()}
         """
         if IS_AUMPAS_INSTALLED:
-            autoUserMaker = getToolByName(self, 'AutoUserMakerPASPlugin')
-            return autoUserMaker.getSharingConfig()
-        else:
-            return {
-                httpSharingTokensKey: self.getProperty(httpSharingTokensKey),
-                httpSharingLabelsKey: self.getProperty(httpSharingLabelsKey)}
+            autoUserMaker = getToolByName(self, 'AutoUserMakerPASPlugin', None)
+            if autoUserMaker is not None:
+                return autoUserMaker.getSharingConfig()
+        return {httpSharingTokensKey: self.getProperty(httpSharingTokensKey),
+                 httpSharingLabelsKey: self.getProperty(httpSharingLabelsKey)}
 
     security.declarePrivate('getShibValues')
     def getShibValues(self):
@@ -240,6 +239,7 @@ class ShibbolethPermissionsHandler(ShibbolethPermissions):
 
     security.declarePublic('isAutoUserMakerPASinstalled')
     def isAutoUserMakerPASinstalled(self):
-        return IS_AUMPAS_INSTALLED
+        return IS_AUMPAS_INSTALLED and \
+               'AutoUserMakerPASPlugin' in self._getPAS().objectIds()
 
 InitializeClass(ShibbolethPermissionsHandler)
