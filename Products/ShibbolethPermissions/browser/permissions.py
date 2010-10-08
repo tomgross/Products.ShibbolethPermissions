@@ -12,12 +12,14 @@ from zExceptions import Forbidden
 
 from plone.memoize.view import memoize
 
+
 def _getList(form, value):
     """ Return a list regardless of single input value or list."""
     rval = form.get(value, [])
     if not isinstance(rval, list):
         rval = [rval,]
     return rval
+
 
 class ShibbolethView(BrowserView):
     """"""
