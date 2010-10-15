@@ -75,6 +75,25 @@ class ShibbolethAdapterTests(ShibPermTestCase):
         self.app.REQUEST.environ['HTTP_DUMMY_ATTR']  = '('
         self.assertEqual(adapter.getRoles('foo'), [])
 
+    def test_catalogquery(self):
+        self.portal.acl_users._doAddUser('jsmith', 'secret', [], [])
+        self.folder.invokeFactory('Folder', id='testfolder')
+        tf = self.folder.testfolder
+        tf.invokeFactory('Document', id='testdocument')
+        self.login('jsmith')
+        tfpath = tf.absolute_url(1)
+        cat = self.portal.portal_catalog
+        self.assertFalse(cat.searchResults(path=tfpath))
+        self.plugin.addLocalRoles(
+            tfpath, {'HTTP_DUMMY_ATTR': 'localedit'}, ['Reader',])
+        self.app.REQUEST.environ['HTTP_DUMMY_ATTR']  = 'localedit'
+        #self.folder.manage_setLocalRoles('jsmith', ['Reader',])
+        #self.folder.reindexObjectSecurity()
+        res = cat.searchResults(path=tfpath)
+        self.assertEqual(len(res), 2)
+        self.assertEqual(res[0].getId, 'testfolder')
+
+
 def test_suite():
     """ This is the unittest suite """
     return unittest.defaultTestLoader.loadTestsFromName(__name__)
