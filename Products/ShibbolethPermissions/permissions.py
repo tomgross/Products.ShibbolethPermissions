@@ -99,7 +99,7 @@ class ShibbolethPermissions(BasePlugin):
         req_environ = getattr(request, 'environ', {})
         return dict([(ii, req_environ.get(ii))
                      for ii in config[httpSharingTokensKey]
-                     if req_environ.has_key(ii)])
+                     if ii in req_environ])
 
     security.declarePublic('getLocalRoles')
     def getLocalRoles(self, path=None, **params):
@@ -121,7 +121,7 @@ class ShibbolethPermissions(BasePlugin):
         if not path and not params:
             return roles        # no select given, so return everything
         if path:
-            if not roles.has_key(path):
+            if not path in roles:
                 return []   # path not found, so return nothing
             if not params:  # path found, but no subcriteria so return whole list
                 return roles[path]
@@ -138,7 +138,7 @@ class ShibbolethPermissions(BasePlugin):
     def addLocalRoles(self, path, params, roles):
         """Add a pattern for path of params."""
         params['_roles'] = roles
-        if self.localRoles.has_key(path):
+        if path in self.localRoles:
             self.localRoles[path].append(params)
         else:
             self.localRoles[path] = PersistentList([params,])
@@ -149,7 +149,7 @@ class ShibbolethPermissions(BasePlugin):
         """
         if path is None and row is None:
             self.localRoles.clear()
-        elif self.localRoles.has_key(path):
+        elif path in self.localRoles:
             if row is not None:
                 del self.localRoles[path][row]
             else:
@@ -161,7 +161,7 @@ class ShibbolethPermissions(BasePlugin):
         """
         if roles is None:
             roles = []
-        if path and self.localRoles.has_key(path) and row is not None:
+        if path and path in self.localRoles and row is not None:
             try:
                 self.localRoles[path][row]['_roles'] = roles
             except (IndexError, TypeError):
