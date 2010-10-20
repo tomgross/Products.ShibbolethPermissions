@@ -3,10 +3,13 @@
 __revision__ = '0.1'
 
 import re
+import logging
 
 from AccessControl import ClassSecurityInfo
+from ZODB.POSException import ConflictError
 from Globals import InitializeClass
 from Products.CMFCore.utils import getToolByName
+from Products.CMFCore.utils import _getAuthenticatedUser
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.PluggableAuthService.permissions import ManageUsers
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
@@ -17,11 +20,14 @@ from persistent.list import PersistentList
 try:
     from Products.AutoUserMakerPASPlugin.auth import httpSharingTokensKey
     from Products.AutoUserMakerPASPlugin.auth import httpSharingLabelsKey
+    httpSharingTokensKey, httpSharingLabelsKey  # pyflakes
     IS_AUMPAS_INSTALLED = True
 except ImportError:
     httpSharingTokensKey = 'http_sharing_tokens'
     httpSharingLabelsKey = 'http_sharing_labels'
     IS_AUMPAS_INSTALLED = False
+
+log = logging.getLogger('shibboleth')
 
 def _searchParams(pathList, paramKeys, **params):
     """Return a list of dictionaries of matched params.
@@ -128,7 +134,7 @@ class ShibbolethPermissions(BasePlugin):
             return _searchParams(roles[path], param_keys, **params)
         # no path, but params, so return a path keyed dict of lists of dicts
         rval = {}
-        for ii in roles.iterkeys(): # each key is a Plone path
+        for ii in roles.iterkeys():  # each key is a Plone path
             found = _searchParams(roles[ii], param_keys, **params)
             if found:           # Don't save empty lists
                 rval[ii] = found
@@ -167,6 +173,59 @@ class ShibbolethPermissions(BasePlugin):
             except (IndexError, TypeError):
                 logger.warning("updLocalRoles error updating row %s from %s"
                                % (str(row), str(path)), exc_info=True)
+
+    def _findroles(self, context):
+        uservals = self.getShibValues()
+        regexs = self.getLocalRoles().get('/'.join(context.getPhysicalPath()), None)
+        if regexs is None:
+            return []
+
+        for ii in regexs:
+            # Make sure the incoming user has all of the
+            # needed attributes
+            for name in ii.iterkeys():
+                if name == '_roles':
+                    continue
+                if not name in uservals:
+                    break
+            else:
+                for name, pattern in ii.iteritems():
+                    if name == '_roles' or uservals[name] is None:
+                        continue
+                    try:
+                        regex = re.compile(pattern)
+                        if not regex.search(uservals[name]):
+                            break
+                    except (ConflictError, KeyboardInterrupt):
+                        raise
+                    except Exception:
+                        break
+                else:
+                    return list(ii['_roles'])
+        return []
+
+    def refreshlocalroles(self, user=None):
+        if user is None:
+            userid = _getAuthenticatedUser(None).getId()
+        else:
+            userid = user.getId()
+        if not userid:
+            return
+        for path in self.localRoles.iterkeys():
+            obj = self.unrestrictedTraverse(path, None)
+            if obj is not None:
+                roles = self._findroles(obj)
+                reindex = False
+                current_localroles = obj.get_local_roles_for_userid(userid)
+                if not roles and current_localroles:
+                    obj.manage_delLocalRoles((userid,))
+                    reindex = True
+                elif tuple(roles) != current_localroles:
+                    obj.manage_setLocalRoles(userid, roles)
+                    reindex = True
+                if reindex:
+                    obj.reindexObjectSecurity()
+
 
 class ShibbolethPermissionsHandler(ShibbolethPermissions):
     """Provide a basic ZMI interface for managing mappings.

@@ -9,7 +9,6 @@ import os
 import unittest
 import doctest
 from Testing import ZopeTestCase as ztc
-from Products.ShibbolethPermissions import shib_globals
 
 from Products.ShibbolethPermissions.tests.base import ShibPermFunctionalTestCase
 

@@ -6,7 +6,6 @@ from Acquisition import aq_inner
 from Products.CMFCore.utils import getToolByName
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from Products.PluggableAuthService.PluggableAuthService import logger
 from plone.app.workflow.interfaces import ISharingPageRole
 from zExceptions import Forbidden
 
@@ -31,7 +30,6 @@ class ShibbolethView(BrowserView):
         postback = True
         form = self.request.form
         submitted = form.get('form.submitted', False)
-        update_button = form.get('form.button.Update', None) is not None
         save_button   = form.get('form.button.Save', None) is not None
         cancel_button = form.get('form.button.Cancel', None) is not None
         if submitted and not cancel_button:

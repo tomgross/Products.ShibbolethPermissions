@@ -1,5 +1,4 @@
 from Products.PluggableAuthService.interfaces.authservice import IPluggableAuthService
-from Products.PluggableAuthService.interfaces.plugins import IAuthenticationPlugin, IExtractionPlugin
 from Products.ShibbolethPermissions.permissions import ShibbolethPermissionsHandler
 from Products.ShibbolethPermissions.Extensions.Install import _firstIdOfClass
 
