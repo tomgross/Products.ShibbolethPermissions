@@ -1,4 +1,4 @@
-0.8b2 (unreleased)
+0.8b2 (2010-11-19)
 ==================
 
 - fix event-handler for users outside of Plone
