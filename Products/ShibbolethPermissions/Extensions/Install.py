@@ -26,7 +26,7 @@ def install(portal, reinstall=False):
     pluginId = _firstIdOfClass(acl_users, ShibbolethPermissionsHandler)
     if not pluginId:
         manage_addShibbolethPermissions(
-            acl_users, pluginId, 'ShibbolethPermissions Plugin')
+            acl_users, 'ShibbolethPermissions', 'ShibbolethPermissions Plugin')
 
     portal_setup = getToolByName(portal, 'portal_setup')
     portal_setup.runAllImportStepsFromProfile(
