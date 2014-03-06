@@ -7,6 +7,7 @@ from Products.PluggableAuthService.PluggableAuthService import logger
 
 from Products.ShibbolethPermissions.permissions import \
         ShibbolethPermissionsHandler
+from Products.ShibbolethPermissions.zmi import manage_addShibbolethPermissions
 
 
 def _firstIdOfClass(container, class_):
@@ -24,10 +25,8 @@ def install(portal, reinstall=False):
     # Put a ShibbolethPermisssion in the acl_users folder, if there isn't one:
     pluginId = _firstIdOfClass(acl_users, ShibbolethPermissionsHandler)
     if not pluginId:
-        pluginId = 'ShibbolethPermissions'
-        constructors = acl_users.manage_addProduct[pluginId]
-        constructors.manage_addShibbolethPermissions(
-            pluginId, title='ShibbolethPermissions Plugin')
+        manage_addShibbolethPermissions(
+            acl_users, pluginId, 'ShibbolethPermissions Plugin')
 
     portal_setup = getToolByName(portal, 'portal_setup')
     portal_setup.runAllImportStepsFromProfile(
