@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-version = '0.8b3dev'
+version = '0.9.dev0'
 
 long_description = (
     read('README.rst')
@@ -36,7 +36,9 @@ setup(name='Products.ShibbolethPermissions',
       classifiers=[
         'Framework :: Zope2',
         'Framework :: Plone',
+        'Framework :: Plone :: 4.3',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
         ],
       keywords='plone authentication shibboleth pas',
       author='Tom Gross',
