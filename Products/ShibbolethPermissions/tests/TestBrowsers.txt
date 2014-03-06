@@ -29,7 +29,7 @@ and simplify the plone UI by removing the left and right portlets.
     >>> browser1.open(self.portal.absolute_url())
     >>> browser1.getLink('Log in').click()
     >>> browser1.url
-    'http://nohost/plone/login_form'
+    'http://nohost/plone/login'
     >>> browser1.getControl(name='__ac_name').value = ptc.default_user
     >>> browser1.getControl(name='__ac_password').value = ptc.default_password
     >>> browser1.getControl(name='submit').click()

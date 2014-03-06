@@ -50,9 +50,9 @@ class ShibbolethViewTests(ShibPermTestCase):
         request.form['form.button.Cancel'] = 1
         view = ShibbolethView(context, request)
         self.failIf(view()) # the view is none itself, but redirects
-        resp = request.RESPONSE
-        self.failUnlessEqual(resp.getHeader('status'), '302 Moved Temporarily')
-        self.failUnlessEqual(resp.getHeader('location'), 'http://nohost/plone')
+        resp = request.response
+        self.assertEqual(resp.getStatus(), 302)
+        self.assertEqual(resp.getHeader('location'), 'http://nohost/plone')
 
 def test_suite():
     """ This is the unittest suite """
