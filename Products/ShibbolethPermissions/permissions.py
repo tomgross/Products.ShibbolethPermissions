@@ -59,7 +59,7 @@ class ShibbolethPermissions(BasePlugin):
     security = ClassSecurityInfo()
 
     def __init__(self, pluginId, title=None):
-        self.setId(pluginId)
+        self.id = pluginId
         self.title = title
         self.localRoles = PersistentDict()
         self.retest = re.compile(' ')
